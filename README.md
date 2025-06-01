@@ -1,11 +1,10 @@
 # BAR - Sistema de Gestão de Vendas
 
-Um sistema moderno de gestão de vendas desenvolvido com Next.js, TypeScript e Tailwind CSS.
+Um sistema moderno de gestão de vendas desenvolvido com Next.js e Tailwind CSS.
 
 ## 🚀 Tecnologias
 
 - [Next.js](https://nextjs.org/) - Framework React para produção
-- [TypeScript](https://www.typescriptlang.org/) - Superset JavaScript com tipagem estática
 - [Tailwind CSS](https://tailwindcss.com/) - Framework CSS utilitário
 - [NextAuth.js](https://next-auth.js.org/) - Autenticação para Next.js
 - [React Hook Form](https://react-hook-form.com/) - Gerenciamento de formulários
@@ -63,7 +62,7 @@ BAR/
 
 ## 🔐 Autenticação
 
-O sistema utiliza NextAuth.js para gerenciar a autenticação. Os usuários podem fazer login com suas credenciais e são redirecionados para a página de vendas após a autenticação bem-sucedida.
+O sistema utiliza autenticação própria para gerenciar a autenticação. Os usuários podem fazer login com suas credenciais e são redirecionados para a página de vendas após a autenticação bem-sucedida.
 
 ## 📱 Funcionalidades
 
