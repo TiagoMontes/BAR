@@ -1,6 +1,6 @@
 # BAR - Sistema de Gestão de Vendas
 
-Um sistema moderno de gestão de vendas desenvolvido com Next.js, TypeScript e Tailwind CSS.
+Um sistema moderno de gestão de vendas desenvolvido com Next.js e Tailwind CSS.
 
 ## 🚀 Tecnologias
 
