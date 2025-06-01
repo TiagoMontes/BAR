@@ -20,6 +20,18 @@ export default function VendasInterface({ user }) {
   const [showComandaDetalhes, setShowComandaDetalhes] = useState(false)
   const [saleStatus, setSaleStatus] = useState(null)
   const [lastSaleCupom, setLastSaleCupom] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile screen
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Get unique sectors
   const setores = ['todos', ...new Set(produtos.map(p => p.Setor))]
@@ -30,6 +42,18 @@ export default function VendasInterface({ user }) {
     const matchesSetor = selectedSetor === 'todos' || produto.Setor === selectedSetor
     return matchesSearch && matchesSetor
   })
+
+  // Calculate pagination
+  const productsPerPage = isMobile ? 4 : 9
+  const totalPages = Math.ceil(filteredProdutos.length / productsPerPage)
+  const startIndex = (currentPage - 1) * productsPerPage
+  const endIndex = startIndex + productsPerPage
+  const currentProducts = filteredProdutos.slice(startIndex, endIndex)
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, selectedSetor])
 
   // Filter comandas based on search term
   const filteredComandas = comandas.filter(comanda => 
@@ -210,12 +234,12 @@ export default function VendasInterface({ user }) {
 
           {/* Products Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProdutos.length === 0 ? (
+            {currentProducts.length === 0 ? (
               <div className="col-span-full text-center py-8 text-gray-500">
                 Nenhum produto encontrado
               </div>
             ) : (
-              filteredProdutos.map(produto => (
+              currentProducts.map(produto => (
                 <div
                   key={produto.Id}
                   className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
@@ -228,6 +252,31 @@ export default function VendasInterface({ user }) {
               ))
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-4">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-2 py-1 text-sm rounded bg-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                &lt;
+              </button>
+              
+              <span className="text-sm text-gray-600">
+                Página {currentPage} de {totalPages}
+              </span>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-2 py-1 text-sm rounded bg-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                &gt;
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Column - Cart and Controls */}
