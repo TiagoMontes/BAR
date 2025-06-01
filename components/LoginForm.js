@@ -84,11 +84,8 @@ export default function LoginForm({ onLogin, onLogout }) {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sistema de Vendas
+            TecBar
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Faça login para continuar
-          </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">

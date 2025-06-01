@@ -63,7 +63,7 @@ export default function Vendas() {
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Sistema de Vendas</h1>
+          <h1 className="text-2xl font-bold text-gray-800">TecBar</h1>
           <div className="flex items-center space-x-4">
             <span className="text-gray-600">
               Operador: {user.Nome}
