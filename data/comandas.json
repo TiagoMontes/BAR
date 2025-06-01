@@ -1,11 +1,5 @@
 [
   {
-    "Idcomanda": 1,
-    "Cliente": "TIAGO",
-    "saldo": 1288,
-    "Entrada": "31/05/2025, 18:00:33"
-  },
-  {
     "Idcomanda": 2,
     "Cliente": "TIAGO",
     "saldo": 500,
@@ -44,7 +38,7 @@
   {
     "Idcomanda": 8,
     "Cliente": "MARCO",
-    "saldo": 859,
+    "saldo": 1159,
     "Entrada": "01/06/2025, 10:12:57"
   }
 ]

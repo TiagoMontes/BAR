@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import ComandaForm from '../ComandaForm'
+import Link from 'next/link'
 
 export default function ComandaSelector({ comandas, selectedComanda, onComandaSelect, onShowDetails }) {
-  const [showComandaForm, setShowComandaForm] = useState(false)
   const [comandaSearchTerm, setComandaSearchTerm] = useState('')
 
   // Filter comandas based on search term
@@ -11,29 +10,19 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
     String(comanda.Idcomanda).includes(comandaSearchTerm)
   )
 
-  const handleComandaSelect = (comanda) => {
-    onComandaSelect(comanda)
-    setShowComandaForm(false)
-  }
-
   return (
     <div className="bg-white p-4 rounded-lg shadow">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-lg font-semibold">Comanda</h2>
-        <button
-          onClick={() => setShowComandaForm(true)}
+        <Link
+          href="/comandas"
           className="text-sm text-primary hover:text-primary-dark"
         >
-          Nova Comanda
-        </button>
+          Gerenciar Comandas
+        </Link>
       </div>
       
-      {showComandaForm ? (
-        <ComandaForm 
-          onComandaSelect={handleComandaSelect} 
-          onCancel={() => setShowComandaForm(false)}
-        />
-      ) : selectedComanda ? (
+      {selectedComanda ? (
         <div className="space-y-2">
           <p className="font-medium">{selectedComanda.Cliente}</p>
           <p className="text-sm text-gray-600">

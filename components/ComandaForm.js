@@ -103,7 +103,7 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
               disabled={isLoading || !cliente.trim()}
               className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Verificando...' : 'Criar Comanda'}
+              {isLoading ? 'Verificando...' : 'Criar'}
             </button>
           </div>
         </form>
