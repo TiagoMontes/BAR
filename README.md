@@ -62,7 +62,7 @@ BAR/
 
 ## 🔐 Autenticação
 
-O sistema utiliza NextAuth.js para gerenciar a autenticação. Os usuários podem fazer login com suas credenciais e são redirecionados para a página de vendas após a autenticação bem-sucedida.
+O sistema utiliza autenticação própria para gerenciar a autenticação. Os usuários podem fazer login com suas credenciais e são redirecionados para a página de vendas após a autenticação bem-sucedida.
 
 ## 📱 Funcionalidades
 
