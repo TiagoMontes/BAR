@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { getComandas, getProdutos, getAtendentes, registerSale } from '../lib/api'
-import ComandaForm from './ComandaForm'
 import ComandaDetalhes from './ComandaDetalhes'
+import ProductGrid from './vendas/ProductGrid'
+import Cart from './vendas/Cart'
+import ComandaSelector from './vendas/ComandaSelector'
+import AttendantSelector from './vendas/AttendantSelector'
 
 export default function VendasInterface({ user }) {
   const [comandas, setComandas] = useState([])
@@ -10,56 +13,12 @@ export default function VendasInterface({ user }) {
   const [selectedComanda, setSelectedComanda] = useState(null)
   const [selectedAtendentes, setSelectedAtendentes] = useState([])
   const [cart, setCart] = useState([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [comandaSearchTerm, setComandaSearchTerm] = useState('')
-  const [selectedSetor, setSelectedSetor] = useState('todos')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [showComandaForm, setShowComandaForm] = useState(false)
   const [isProcessingSale, setIsProcessingSale] = useState(false)
   const [showComandaDetalhes, setShowComandaDetalhes] = useState(false)
   const [saleStatus, setSaleStatus] = useState(null)
   const [lastSaleCupom, setLastSaleCupom] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [isMobile, setIsMobile] = useState(false)
-
-  // Detect mobile screen
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  // Get unique sectors
-  const setores = ['todos', ...new Set(produtos.map(p => p.Setor))]
-
-  // Filter products based on search term and selected sector
-  const filteredProdutos = produtos.filter(produto => {
-    const matchesSearch = produto.Descricao.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesSetor = selectedSetor === 'todos' || produto.Setor === selectedSetor
-    return matchesSearch && matchesSetor
-  })
-
-  // Calculate pagination
-  const productsPerPage = isMobile ? 4 : 9
-  const totalPages = Math.ceil(filteredProdutos.length / productsPerPage)
-  const startIndex = (currentPage - 1) * productsPerPage
-  const endIndex = startIndex + productsPerPage
-  const currentProducts = filteredProdutos.slice(startIndex, endIndex)
-
-  // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchTerm, selectedSetor])
-
-  // Filter comandas based on search term
-  const filteredComandas = comandas.filter(comanda => 
-    comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-    String(comanda.Idcomanda).includes(comandaSearchTerm)
-  )
 
   // Load initial data
   useEffect(() => {
@@ -130,13 +89,6 @@ export default function VendasInterface({ user }) {
     )
   }
 
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => {
-      const produto = produtos.find(p => p.Id === item.produtoId)
-      return total + (produto ? produto.Preco * item.quantidade : 0)
-    }, 0)
-  }
-
   const hasCommissionProducts = () => {
     return cart.some(item => {
       const produto = produtos.find(p => p.Id === item.produtoId)
@@ -180,13 +132,33 @@ export default function VendasInterface({ user }) {
 
   const handleViewLastSale = () => {
     setShowComandaDetalhes(true)
-    // Pass the cupom ID to highlight the sale
     setLastSaleCupom(lastSaleCupom)
   }
 
-  const handleComandaSelect = (comanda) => {
-    setSelectedComanda(comanda)
-    setShowComandaForm(false)
+  const handleSelectAttendant = (atendente) => {
+    setSelectedAtendentes([...selectedAtendentes, atendente])
+    // Update cart items with commission to include the selected attendant
+    setCart(prevCart => 
+      prevCart.map(item => {
+        const produto = produtos.find(p => p.Id === item.produtoId)
+        return produto?.Comissao === 1 
+          ? { ...item, atendenteId: atendente.id }
+          : item
+      })
+    )
+  }
+
+  const handleRemoveAttendant = (atendenteId) => {
+    setSelectedAtendentes(selectedAtendentes.filter(a => a.id !== atendenteId))
+    // Remove attendant from cart items
+    setCart(prevCart => 
+      prevCart.map(item => {
+        const produto = produtos.find(p => p.Id === item.produtoId)
+        return produto?.Comissao === 1 
+          ? { ...item, atendenteId: null }
+          : item
+      })
+    )
   }
 
   if (isLoading) {
@@ -202,312 +174,42 @@ export default function VendasInterface({ user }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Product Catalog */}
         <div className="lg:col-span-2">
-          <div className="mb-4 space-y-4">
-            {/* Search Input */}
-            <div>
-              <input
-                type="text"
-                placeholder="Buscar produtos..."
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            {/* Sector Tabs */}
-            <div className="flex space-x-2 overflow-x-auto pb-2">
-              {setores.map(setor => (
-                <button
-                  key={setor}
-                  onClick={() => setSelectedSetor(setor)}
-                  className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                    selectedSetor === setor
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  {setor === 'todos' ? 'Todos' : setor}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {currentProducts.length === 0 ? (
-              <div className="col-span-full text-center py-8 text-gray-500">
-                Nenhum produto encontrado
-              </div>
-            ) : (
-              currentProducts.map(produto => (
-                <div
-                  key={produto.Id}
-                  className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => addToCart(produto)}
-                >
-                  <h3 className="font-semibold">{produto.Descricao}</h3>
-                  <p className="text-gray-600">R$ {produto.Preco.toFixed(2)}</p>
-                  <p className="text-sm text-gray-500">{produto.Setor}</p>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-4">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-2 py-1 text-sm rounded bg-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                &lt;
-              </button>
-              
-              <span className="text-sm text-gray-600">
-                Página {currentPage} de {totalPages}
-              </span>
-
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="px-2 py-1 text-sm rounded bg-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                &gt;
-              </button>
-            </div>
-          )}
+          <ProductGrid 
+            produtos={produtos}
+            onAddToCart={addToCart}
+          />
         </div>
 
         {/* Right Column - Cart and Controls */}
         <div className="space-y-4">
-          {/* Command Selection */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-lg font-semibold">Comanda</h2>
-              <button
-                onClick={() => setShowComandaForm(true)}
-                className="text-sm text-primary hover:text-primary-dark"
-              >
-                Nova Comanda
-              </button>
-            </div>
-            
-            {showComandaForm ? (
-              <ComandaForm 
-                onComandaSelect={handleComandaSelect} 
-                onCancel={() => setShowComandaForm(false)}
-              />
-            ) : selectedComanda ? (
-              <div className="space-y-2">
-                <p className="font-medium">{selectedComanda.Cliente}</p>
-                <p className="text-sm text-gray-600">
-                  ID: {selectedComanda.Idcomanda} | Saldo: R$ {selectedComanda.saldo.toFixed(2)}
-                </p>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setSelectedComanda(null)}
-                    className="text-sm text-red-600 hover:text-red-700"
-                  >
-                    Trocar Comanda
-                  </button>
-                  <button
-                    onClick={() => setShowComandaDetalhes(true)}
-                    className="text-sm text-primary hover:text-primary-dark"
-                  >
-                    Detalhes
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {/* Comanda Search */}
-                <div className="mb-2">
-                  <input
-                    type="text"
-                    placeholder="Buscar comanda por nome ou ID..."
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    value={comandaSearchTerm}
-                    onChange={(e) => setComandaSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div className="max-h-48 overflow-y-auto">
-                  {filteredComandas.length === 0 ? (
-                    <p className="text-gray-500 text-center py-2">Nenhuma comanda encontrada</p>
-                  ) : (
-                    filteredComandas.map(comanda => (
-                      <div
-                        key={comanda.Idcomanda}
-                        onClick={() => setSelectedComanda(comanda)}
-                        className="p-2 hover:bg-gray-50 cursor-pointer rounded-lg transition-colors"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{comanda.Cliente}</span>
-                          <span className="text-sm text-gray-600">
-                            ID: {comanda.Idcomanda}
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Saldo: R$ {comanda.saldo.toFixed(2)}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          <ComandaSelector 
+            comandas={comandas}
+            selectedComanda={selectedComanda}
+            onComandaSelect={setSelectedComanda}
+            onShowDetails={setShowComandaDetalhes}
+          />
 
           {/* Attendant Selection - Only show if there are commission products */}
           {hasCommissionProducts() && (
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h2 className="text-lg font-semibold mb-2">Atendentes (Opcional)</h2>
-              <div className="space-y-2">
-                <select
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  value=""
-                  onChange={(e) => {
-                    const atendenteId = Number(e.target.value)
-                    if (atendenteId) {
-                      const atendente = atendentes.find(a => a.id === atendenteId)
-                      if (atendente && !selectedAtendentes.find(a => a.id === atendenteId)) {
-                        setSelectedAtendentes([...selectedAtendentes, atendente])
-                        // Update cart items with commission to include the selected attendant
-                        setCart(prevCart => 
-                          prevCart.map(item => {
-                            const produto = produtos.find(p => p.Id === item.produtoId)
-                            return produto?.Comissao === 1 
-                              ? { ...item, atendenteId: atendenteId }
-                              : item
-                          })
-                        )
-                      }
-                    }
-                  }}
-                >
-                  <option value="">Selecione um atendente</option>
-                  {atendentes
-                    .filter(atendente => !selectedAtendentes.find(a => a.id === atendente.id))
-                    .map(atendente => (
-                      <option key={atendente.id} value={atendente.id}>
-                        {atendente.Apelido}
-                      </option>
-                    ))}
-                </select>
-                
-                {/* Selected Attendants List */}
-                {selectedAtendentes.length > 0 && (
-                  <div className="mt-2 space-y-2">
-                    {selectedAtendentes.map(atendente => (
-                      <div key={atendente.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                        <span>{atendente.Apelido}</span>
-                        <button
-                          onClick={() => {
-                            setSelectedAtendentes(selectedAtendentes.filter(a => a.id !== atendente.id))
-                            // Remove attendant from cart items
-                            setCart(prevCart => 
-                              prevCart.map(item => {
-                                const produto = produtos.find(p => p.Id === item.produtoId)
-                                return produto?.Comissao === 1 
-                                  ? { ...item, atendenteId: null }
-                                  : item
-                              })
-                            )
-                          }}
-                          className="text-red-500 hover:text-red-600"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <AttendantSelector 
+              atendentes={atendentes}
+              selectedAtendentes={selectedAtendentes}
+              onSelectAttendant={handleSelectAttendant}
+              onRemoveAttendant={handleRemoveAttendant}
+            />
           )}
 
-          {/* Cart */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-lg font-semibold mb-2">Carrinho</h2>
-            {cart.length === 0 ? (
-              <p className="text-gray-500">Carrinho vazio</p>
-            ) : (
-              <div className="space-y-2">
-                {cart.map(item => {
-                  const produto = produtos.find(p => p.Id === item.produtoId)
-                  return (
-                    <div key={item.produtoId} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{produto.Descricao}</p>
-                        <p className="text-sm text-gray-500">
-                          R$ {produto.Preco.toFixed(2)} x {item.quantidade}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
-                          onClick={() => updateQuantity(item.produtoId, item.quantidade - 1)}
-                        >
-                          -
-                        </button>
-                        <span>{item.quantidade}</span>
-                        <button
-                          className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
-                          onClick={() => updateQuantity(item.produtoId, item.quantidade + 1)}
-                        >
-                          +
-                        </button>
-                        <button
-                          className="px-2 py-1 text-red-500 hover:text-red-600"
-                          onClick={() => removeFromCart(item.produtoId)}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
-                <div className="border-t pt-2 mt-2">
-                  <p className="font-semibold">
-                    Total: R$ {calculateTotal().toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-100 text-red-600 p-4 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          {/* Checkout Button */}
-          <button
-            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!selectedComanda || cart.length === 0 || isProcessingSale}
-            onClick={handleSale}
-          >
-            {isProcessingSale ? 'Processando...' : 'Finalizar Venda'}
-          </button>
-
-          {/* Sale Status Message */}
-          {saleStatus === 'success' && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={handleViewLastSale}
-                className="text-green-600 hover:text-green-700 font-medium cursor-pointer"
-              >
-                Venda realizada com sucesso! Clique para ver detalhes.
-              </button>
-            </div>
-          )}
-          {saleStatus === 'error' && (
-            <div className="mt-4 text-center text-red-600">
-              Erro ao realizar venda
-            </div>
-          )}
+          <Cart 
+            cart={cart}
+            produtos={produtos}
+            onUpdateQuantity={updateQuantity}
+            onRemoveItem={removeFromCart}
+            onCheckout={handleSale}
+            isProcessingSale={isProcessingSale}
+            error={error}
+            saleStatus={saleStatus}
+            onViewLastSale={handleViewLastSale}
+          />
         </div>
       </div>
 
