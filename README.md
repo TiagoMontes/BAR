@@ -5,7 +5,6 @@ Um sistema moderno de gestão de vendas desenvolvido com Next.js e Tailwind CSS.
 ## 🚀 Tecnologias
 
 - [Next.js](https://nextjs.org/) - Framework React para produção
-- [TypeScript](https://www.typescriptlang.org/) - Superset JavaScript com tipagem estática
 - [Tailwind CSS](https://tailwindcss.com/) - Framework CSS utilitário
 - [NextAuth.js](https://next-auth.js.org/) - Autenticação para Next.js
 - [React Hook Form](https://react-hook-form.com/) - Gerenciamento de formulários
