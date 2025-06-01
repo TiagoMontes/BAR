@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-export default function ComandaDetalhes({ comanda, isOpen, onClose }) {
+export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCupom }) {
   const [vendas, setVendas] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -16,7 +16,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose }) {
           throw new Error('Failed to fetch sales data')
         }
         const vendasData = await response.json()
-        setVendas(vendasData)
+        setVendas(vendasData.reverse())
       } catch (err) {
         console.error('Error loading sales:', err)
         setError('Erro ao carregar histórico de vendas')
@@ -81,28 +81,37 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose }) {
               <p className="text-gray-500 text-center py-4">Nenhuma venda registrada</p>
             ) : (
               <div className="space-y-4">
-                {vendas.slice().reverse().map((venda, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-600">
-                        Cupom: {venda.fileName.split('-')[2].split('.')[0]}
-                      </span>
-                      <span className="font-medium">
-                        R$ {(venda.total || 0).toFixed(2)}
-                      </span>
+                {vendas.map((venda, index) => {
+                  const cupomId = venda.fileName.split('-')[2].split('.')[0]
+                  const isHighlighted = highlightCupom && String(cupomId) === String(highlightCupom)
+                  return (
+                    <div 
+                      key={index} 
+                      className={`border rounded-lg p-4 transition-colors ${
+                        isHighlighted ? 'bg-green-50 border-green-200 shadow-md' : ''
+                      }`}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <span className={`text-sm ${isHighlighted ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
+                          Cupom: {cupomId}
+                        </span>
+                        <span className={`font-medium ${isHighlighted ? 'text-green-700' : ''}`}>
+                          R$ {(venda.total || 0).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {venda.items.map((item, itemIndex) => (
+                          <div key={itemIndex} className="flex justify-between text-sm">
+                            <span>{item.descricao} x {item.quantidade}</span>
+                            <span className="text-gray-600">
+                              R$ {((item.quantidade * item.preco) || 0).toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      {venda.items.map((item, itemIndex) => (
-                        <div key={itemIndex} className="flex justify-between text-sm">
-                          <span>{item.descricao} x {item.quantidade}</span>
-                          <span className="text-gray-600">
-                            R$ {((item.quantidade * item.preco) || 0).toFixed(2)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>

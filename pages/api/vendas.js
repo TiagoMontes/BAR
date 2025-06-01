@@ -8,9 +8,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { comandaId, operadorId, cupomId, items } = req.body
+    const { comandaId, operadorId, items, atendentes } = req.body
 
-    if (!comandaId || !operadorId || !cupomId || !items || !Array.isArray(items)) {
+    if (!comandaId || !operadorId || !items || !Array.isArray(items)) {
       return res.status(400).json({ message: 'Invalid sale data' })
     }
 
@@ -33,26 +33,44 @@ export default async function handler(req, res) {
     comanda.saldo += totalAmount
     await writeJsonFile('comandas.json', comandas)
 
-    // Create sale file
-    const saleContent = items.map(item => {
-      const produto = produtos.find(p => p.Id === item.produtoId)
-      return `${item.produtoId}!${produto.Descricao}!${item.quantidade}!${item.atendenteId}!`
-    }).join('\n')
-
-    const saleFileName = `${String(comandaId).padStart(5, '0')}-${String(operadorId).padStart(2, '0')}-${String(cupomId).padStart(5, '0')}.cv`
+    // Generate sequential cupomId
     const salesDir = path.join(process.cwd(), 'data', 'vendas')
-    
     try {
       await fs.mkdir(salesDir, { recursive: true })
     } catch (error) {
       // Ignore error if directory already exists
     }
 
+    // Get all existing cupom files
+    const files = await fs.readdir(salesDir)
+    const cupomFiles = files.filter(file => file.endsWith('.cv'))
+    
+    // Find the highest cupomId
+    let highestCupomId = 0
+    cupomFiles.forEach(file => {
+      const cupomId = parseInt(file.split('-')[2].split('.')[0])
+      if (cupomId > highestCupomId) {
+        highestCupomId = cupomId
+      }
+    })
+
+    // Generate new cupomId (increment by 1)
+    const cupomId = highestCupomId + 1
+
+    // Create sale file
+    const saleContent = items.map(item => {
+      const produto = produtos.find(p => p.Id === item.produtoId)
+      const atendenteIds = produto?.Comissao === 1 ? (atendentes || []).join(',') : ''
+      return `${item.produtoId}!${produto.Descricao}!${item.quantidade}!${atendenteIds}!`
+    }).join('\n')
+
+    const saleFileName = `${String(comandaId).padStart(5, '0')}-${String(operadorId).padStart(2, '0')}-${String(cupomId).padStart(5, '0')}.cv`
+    
     await fs.writeFile(path.join(salesDir, saleFileName), saleContent)
 
-    res.status(200).json({ message: 'Sale registered successfully' })
+    res.status(200).json({ message: 'Sale registered successfully', cupomId })
   } catch (error) {
-    console.error('Error registering sale:', error)
+    console.error('Error creating/checking comanda:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 } 

@@ -8,7 +8,7 @@ export default function VendasInterface({ user }) {
   const [produtos, setProdutos] = useState([])
   const [atendentes, setAtendentes] = useState([])
   const [selectedComanda, setSelectedComanda] = useState(null)
-  const [selectedAtendente, setSelectedAtendente] = useState(null)
+  const [selectedAtendentes, setSelectedAtendentes] = useState([])
   const [cart, setCart] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [comandaSearchTerm, setComandaSearchTerm] = useState('')
@@ -18,6 +18,8 @@ export default function VendasInterface({ user }) {
   const [showComandaForm, setShowComandaForm] = useState(false)
   const [isProcessingSale, setIsProcessingSale] = useState(false)
   const [showComandaDetalhes, setShowComandaDetalhes] = useState(false)
+  const [saleStatus, setSaleStatus] = useState(null)
+  const [lastSaleCupom, setLastSaleCupom] = useState(null)
 
   // Get unique sectors
   const setores = ['todos', ...new Set(produtos.map(p => p.Setor))]
@@ -81,7 +83,7 @@ export default function VendasInterface({ user }) {
       return [...prevCart, { 
         produtoId: produto.Id, 
         quantidade: 1, 
-        atendenteId: produto.Comissao === 1 ? selectedAtendente?.id || null : null
+        atendenteId: produto.Comissao === 1 ? selectedAtendentes[0]?.id || null : null
       }]
     })
   }
@@ -118,46 +120,44 @@ export default function VendasInterface({ user }) {
     })
   }
 
-  const allCommissionProductsHaveAttendants = () => {
-    return cart.every(item => {
-      const produto = produtos.find(p => p.Id === item.produtoId)
-      return produto?.Comissao !== 1 || (produto?.Comissao === 1 && item.atendenteId)
-    })
-  }
-
   const handleSale = async () => {
     if (!selectedComanda || cart.length === 0) {
       setError('Selecione uma comanda e adicione itens ao carrinho')
       return
     }
 
-    if (hasCommissionProducts() && !allCommissionProductsHaveAttendants()) {
-      setError('Produtos com comissão precisam ter um atendente selecionado')
-      return
-    }
-
     try {
       setIsProcessingSale(true)
-      const cupomId = Math.floor(Math.random() * 100000)
-      await registerSale({
+      setSaleStatus(null)
+      const response = await registerSale({
         comandaId: selectedComanda.Idcomanda,
         operadorId: user.Nivel,
-        cupomId,
-        items: cart
+        items: cart,
+        atendentes: selectedAtendentes.map(a => a.id)
       })
       
       // Update comandas data
       const updatedComandas = await getComandas()
       setComandas(updatedComandas)
       
-      // Clear only the cart
+      // Clear cart and selected attendants
       setCart([])
+      setSelectedAtendentes([])
       setError('')
+      setSaleStatus('success')
+      setLastSaleCupom(response.cupomId)
     } catch (err) {
       setError('Erro ao registrar venda')
+      setSaleStatus('error')
     } finally {
       setIsProcessingSale(false)
     }
+  }
+
+  const handleViewLastSale = () => {
+    setShowComandaDetalhes(true)
+    // Pass the cupom ID to highlight the sale
+    setLastSaleCupom(lastSaleCupom)
   }
 
   const handleComandaSelect = (comanda) => {
@@ -312,30 +312,68 @@ export default function VendasInterface({ user }) {
           {/* Attendant Selection - Only show if there are commission products */}
           {hasCommissionProducts() && (
             <div className="bg-white p-4 rounded-lg shadow">
-              <h2 className="text-lg font-semibold mb-2">Atendente</h2>
-              <select
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                value={selectedAtendente?.id || ''}
-                onChange={(e) => {
-                  const atendente = atendentes.find(a => a.id === Number(e.target.value))
-                  setSelectedAtendente(atendente)
-                  setCart(prevCart => 
-                    prevCart.map(item => {
-                      const produto = produtos.find(p => p.Id === item.produtoId)
-                      return produto?.Comissao === 1 
-                        ? { ...item, atendenteId: atendente?.id || null }
-                        : item
-                    })
-                  )
-                }}
-              >
-                <option value="">Selecione um atendente</option>
-                {atendentes.map(atendente => (
-                  <option key={atendente.id} value={atendente.id}>
-                    {atendente.Apelido}
-                  </option>
-                ))}
-              </select>
+              <h2 className="text-lg font-semibold mb-2">Atendentes (Opcional)</h2>
+              <div className="space-y-2">
+                <select
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  value=""
+                  onChange={(e) => {
+                    const atendenteId = Number(e.target.value)
+                    if (atendenteId) {
+                      const atendente = atendentes.find(a => a.id === atendenteId)
+                      if (atendente && !selectedAtendentes.find(a => a.id === atendenteId)) {
+                        setSelectedAtendentes([...selectedAtendentes, atendente])
+                        // Update cart items with commission to include the selected attendant
+                        setCart(prevCart => 
+                          prevCart.map(item => {
+                            const produto = produtos.find(p => p.Id === item.produtoId)
+                            return produto?.Comissao === 1 
+                              ? { ...item, atendenteId: atendenteId }
+                              : item
+                          })
+                        )
+                      }
+                    }
+                  }}
+                >
+                  <option value="">Selecione um atendente</option>
+                  {atendentes
+                    .filter(atendente => !selectedAtendentes.find(a => a.id === atendente.id))
+                    .map(atendente => (
+                      <option key={atendente.id} value={atendente.id}>
+                        {atendente.Apelido}
+                      </option>
+                    ))}
+                </select>
+                
+                {/* Selected Attendants List */}
+                {selectedAtendentes.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {selectedAtendentes.map(atendente => (
+                      <div key={atendente.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                        <span>{atendente.Apelido}</span>
+                        <button
+                          onClick={() => {
+                            setSelectedAtendentes(selectedAtendentes.filter(a => a.id !== atendente.id))
+                            // Remove attendant from cart items
+                            setCart(prevCart => 
+                              prevCart.map(item => {
+                                const produto = produtos.find(p => p.Id === item.produtoId)
+                                return produto?.Comissao === 1 
+                                  ? { ...item, atendenteId: null }
+                                  : item
+                              })
+                            )
+                          }}
+                          className="text-red-500 hover:text-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -404,6 +442,23 @@ export default function VendasInterface({ user }) {
           >
             {isProcessingSale ? 'Processando...' : 'Finalizar Venda'}
           </button>
+
+          {/* Sale Status Message */}
+          {saleStatus === 'success' && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={handleViewLastSale}
+                className="text-green-600 hover:text-green-700 font-medium cursor-pointer"
+              >
+                Venda realizada com sucesso! Clique para ver detalhes.
+              </button>
+            </div>
+          )}
+          {saleStatus === 'error' && (
+            <div className="mt-4 text-center text-red-600">
+              Erro ao realizar venda
+            </div>
+          )}
         </div>
       </div>
 
@@ -413,6 +468,7 @@ export default function VendasInterface({ user }) {
           comanda={selectedComanda} 
           isOpen={showComandaDetalhes}
           onClose={() => setShowComandaDetalhes(false)}
+          highlightCupom={lastSaleCupom}
         />
       )}
     </div>
