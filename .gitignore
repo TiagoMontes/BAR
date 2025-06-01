@@ -39,3 +39,6 @@ next-env.d.ts
 
 # OS generated files
 Thumbs.db
+
+# Data files
+!/data/operadores.json
