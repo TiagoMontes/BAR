@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-export default function ComandaDetalhes({ comanda }) {
+export default function ComandaDetalhes({ comanda, isOpen, onClose }) {
   const [vendas, setVendas] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -25,71 +25,88 @@ export default function ComandaDetalhes({ comanda }) {
       }
     }
 
-    loadVendas()
-  }, [comanda])
+    if (isOpen) {
+      loadVendas()
+    }
+  }, [comanda, isOpen])
 
-  if (!comanda) return null
+  if (!isOpen) return null
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <div className="border-b pb-4 mb-4">
-        <h2 className="text-xl font-semibold mb-2">Detalhes da Comanda</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-gray-600">Cliente</p>
-            <p className="font-medium">{comanda.Cliente}</p>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Detalhes da Comanda</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-          <div>
-            <p className="text-sm text-gray-600">ID</p>
-            <p className="font-medium">{comanda.Idcomanda}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Data de Abertura</p>
-            <p className="font-medium">{comanda.Entrada}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Total Gasto</p>
-            <p className="font-medium text-primary">R$ {comanda.saldo?.toFixed(2) || '0.00'}</p>
-          </div>
-        </div>
-      </div>
 
-      <div>
-        <h3 className="text-lg font-semibold mb-3">Histórico de Vendas</h3>
-        {isLoading ? (
-          <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <div className="border-b pb-4 mb-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Cliente</p>
+                <p className="font-medium">{comanda.Cliente}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">ID</p>
+                <p className="font-medium">{comanda.Idcomanda}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Data de Abertura</p>
+                <p className="font-medium">{comanda.Entrada}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Gasto</p>
+                <p className="font-medium text-primary">R$ {comanda.saldo?.toFixed(2) || '0.00'}</p>
+              </div>
+            </div>
           </div>
-        ) : error ? (
-          <p className="text-red-500 text-center py-4">{error}</p>
-        ) : vendas.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">Nenhuma venda registrada</p>
-        ) : (
-          <div className="space-y-4">
-            {vendas.map((venda, index) => (
-              <div key={index} className="border rounded-lg p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600">
-                    Cupom: {venda.fileName.split('-')[2].split('.')[0]}
-                  </span>
-                  <span className="font-medium">
-                    R$ {(venda.total || 0).toFixed(2)}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {venda.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className="flex justify-between text-sm">
-                      <span>{item.descricao} x {item.quantidade}</span>
-                      <span className="text-gray-600">
-                        R$ {((item.quantidade * item.preco) || 0).toFixed(2)}
+
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Histórico de Vendas</h3>
+            {isLoading ? (
+              <div className="flex justify-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+            ) : error ? (
+              <p className="text-red-500 text-center py-4">{error}</p>
+            ) : vendas.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">Nenhuma venda registrada</p>
+            ) : (
+              <div className="space-y-4">
+                {vendas.slice().reverse().map((venda, index) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-600">
+                        Cupom: {venda.fileName.split('-')[2].split('.')[0]}
+                      </span>
+                      <span className="font-medium">
+                        R$ {(venda.total || 0).toFixed(2)}
                       </span>
                     </div>
-                  ))}
-                </div>
+                    <div className="space-y-2">
+                      {venda.items.map((item, itemIndex) => (
+                        <div key={itemIndex} className="flex justify-between text-sm">
+                          <span>{item.descricao} x {item.quantidade}</span>
+                          <span className="text-gray-600">
+                            R$ {((item.quantidade * item.preco) || 0).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

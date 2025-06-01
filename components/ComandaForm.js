@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { createComanda } from '../lib/api'
 
-export default function ComandaForm({ onComandaSelect }) {
+export default function ComandaForm({ onComandaSelect, onCancel }) {
   const [cliente, setCliente] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -51,20 +51,21 @@ export default function ComandaForm({ onComandaSelect }) {
             </p>
           </div>
           <div className="flex space-x-4">
-            <button
-              onClick={handleConfirmExisting}
-              className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors"
-            >
-              Usar Comanda Existente
-            </button>
-            <button
+
+          <button
               onClick={() => {
                 setExistingComanda(null)
                 setError('')
               }}
-              className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+              className="flex-1 bg-red-400 text-white py-2 px-4 rounded-lg hover:bg-red-500 transition-colors"
             >
               Cancelar
+            </button>
+            <button
+              onClick={handleConfirmExisting}
+              className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors"
+            >
+              Usar Existente
             </button>
           </div>
         </div>
@@ -89,13 +90,22 @@ export default function ComandaForm({ onComandaSelect }) {
             <div className="text-red-500 text-sm">{error}</div>
           )}
 
+          <div className="flex space-x-4">
           <button
-            type="submit"
-            disabled={isLoading || !cliente.trim()}
-            className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Verificando...' : 'Verificar/Criar Comanda'}
-          </button>
+              type="button"
+              onClick={onCancel}
+              className="flex-1 bg-red-400 text-white py-2 px-4 rounded-lg hover:bg-red-500 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading || !cliente.trim()}
+              className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Verificando...' : 'Criar Comanda'}
+            </button>
+          </div>
         </form>
       )}
     </div>

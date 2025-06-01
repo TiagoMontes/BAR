@@ -2,7 +2,7 @@
   {
     "Idcomanda": 1,
     "Cliente": "TIAGO",
-    "saldo": 452,
+    "saldo": 711,
     "Entrada": "31/05/2025, 18:00:33"
   },
   {
@@ -20,7 +20,7 @@
   {
     "Idcomanda": 4,
     "Cliente": "ANDRE",
-    "saldo": 759,
+    "saldo": 784,
     "Entrada": "31/05/2025, 18:05:54"
   },
   {
@@ -34,5 +34,11 @@
     "Cliente": "TIAGO MONTES",
     "saldo": 84,
     "Entrada": "31/05/2025, 19:03:20"
+  },
+  {
+    "Idcomanda": 7,
+    "Cliente": "SARAH",
+    "saldo": 0,
+    "Entrada": "01/06/2025, 09:52:58"
   }
 ]

@@ -1,3 +1,9 @@
 {
-  "sessoes": []
+  "sessoes": [
+    {
+      "operadorId": 1,
+      "inicio": "2025-06-01T14:51:13.279Z",
+      "ultimoAcesso": "2025-06-01T14:51:13.279Z"
+    }
+  ]
 }
