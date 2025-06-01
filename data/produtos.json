@@ -1,0 +1,38 @@
+[
+  {
+     "Id":1, 
+     "Descricao": "COCA COLA LT", 
+     "Preco": 9.00, 
+     "Preco Atendente": 7.00, 
+     "Comissao":0, 
+     "Id setor":1, 
+     "Setor": "bebidas"
+  },
+  {
+     "Id":2, 
+     "Descricao": "RED LABEL DS", 
+     "Preco": 50.00, 
+     "Preco Atendente": 50.00, 
+     "Comissao":1, 
+     "Id setor":1, 
+     "Setor": "bebidas"
+  },
+  {
+     "Id":3, 
+     "Descricao": "RED LABEL LT", 
+     "Preco": 250.00, 
+     "Preco Atendente": 250.00, 
+     "Comissao":1, 
+     "Id setor":1, 
+     "Setor": "bebidas"
+  },
+  {
+     "Id":4, 
+     "Descricao": "X SALADA", 
+     "Preco": 25.00, 
+     "Preco Atendente": 25.00, 
+     "Comissao":1, 
+     "Id setor":2, 
+     "Setor": "COZINHA"
+  }
+]
