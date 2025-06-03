@@ -20,10 +20,9 @@ export default async function handler(req, res) {
     const operadoresData = JSON.parse(operadoresContent)
 
 
-    console.log(operadoresData)
     // Validate data structure
     if (!validateOperadores(operadoresData)) {
-      return res.status(500).json({ message: 'Invalid operadores data structure' + { operadoresData}})
+      return res.status(500).json({ message: operadoresContent})
     }
 
     // Find matching operator
