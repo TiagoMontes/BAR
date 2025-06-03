@@ -27,7 +27,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
   })
 
   // Calculate pagination
-  const productsPerPage = isMobile ? 4 : 9
+  const productsPerPage = isMobile ? 6 : 9
   const totalPages = Math.ceil(filteredProdutos.length / productsPerPage)
   const startIndex = (currentPage - 1) * productsPerPage
   const endIndex = startIndex + productsPerPage
@@ -71,21 +71,20 @@ export default function ProductGrid({ produtos, onAddToCart }) {
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="flex flex-wrap gap-4 justify-center">
         {currentProducts.length === 0 ? (
-          <div className="col-span-full text-center py-8 text-gray-500">
+          <div className="w-full text-center py-8 text-gray-500">
             Nenhum produto encontrado
           </div>
         ) : (
           currentProducts.map(produto => (
             <div
               key={produto.Id}
-              className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white p-4 w-[150px] h-[100px] rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between"
               onClick={() => onAddToCart(produto)}
             >
-              <h3 className="font-semibold">{produto.Descricao}</h3>
-              <p className="text-gray-600">R$ {produto.Preco.toFixed(2)}</p>
-              <p className="text-sm text-gray-500">{produto.Setor}</p>
+              <h3 className="font-semibold text-sm truncate">{produto.Descricao}</h3>
+              <p className="text-gray-600 text-sm">R$ {produto.Preco.toFixed(2)}</p>
             </div>
           ))
         )}
