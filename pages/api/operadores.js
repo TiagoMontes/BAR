@@ -18,6 +18,6 @@ export default async function handler(req, res) {
     res.status(200).json(safeOperadores)
   } catch (error) {
     console.error('Error fetching operators:', error)
-    res.status(500).json({ message: 'Internal server error' })
+    res.status(500).json({ message: 'Internal server error' + error })
   }
 } 
