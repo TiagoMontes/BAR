@@ -14,15 +14,16 @@ export default async function handler(req, res) {
   }
 
   try {
+    // TODO: Restore login logic
+    /*
     // Read operadores.json
     const operadoresPath = path.join(process.cwd(), 'data', 'operadores.json')
     const operadoresContent = await fs.readFile(operadoresPath, 'utf-8')
     const operadoresData = JSON.parse(operadoresContent)
 
-
     // Validate data structure
     if (!validateOperadores(operadoresData)) {
-      return res.status(500).json({ message: operadoresContent})
+      return res.status(500).json({ message: 'Invalid operadores data structure' })
     }
 
     // Find matching operator
@@ -31,7 +32,7 @@ export default async function handler(req, res) {
     )
 
     if (!operador) {
-      return res.status(401).json({ message: 'Invalid credentials' })
+      return res.status(401).json({ message: 'Usuário ou senha inválidos' })
     }
 
     // Check if operator is already logged in
@@ -62,10 +63,24 @@ export default async function handler(req, res) {
 
     // Remove password from response
     const { Senha, ...operadorSemSenha } = operador
+    */
+
+    // Temporary mock user for testing
+    const mockUser = {
+      Id: 1,
+      Nome: "Usuário Teste",
+      Usuario: username,
+      Nivel: 1,
+      Ativo: true
+    }
 
     res.status(200).json({
-      user: operadorSemSenha,
-      sessao: novaSessao
+      user: mockUser,
+      sessao: {
+        operadorId: 1,
+        inicio: new Date().toISOString(),
+        ultimoAcesso: new Date().toISOString()
+      }
     })
   } catch (error) {
     console.error('Login error:', error)
