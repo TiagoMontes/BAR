@@ -1,0 +1,9 @@
+# Ignore everything
+*
+
+# But not these files...
+!.next
+!package.json
+!next.config.js
+!public
+!data/**/*.json 
