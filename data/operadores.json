@@ -2,9 +2,10 @@
   "operadores": [
     {
       "Id": 1,
+      "Nome": "Administrador",
       "Usuario": "admin",
       "Senha": "admin123",
-      "Nome": "Administrador",
+      "Nivel": 1,
       "Ativo": true
     }
   ]
