@@ -113,8 +113,8 @@
    "Descricao": "X SALADA", 
    "Preco": 25.00, 
    "Preco Atendente": 25.00, 
-   "Comissao":1, 
-   "Id setor":2, 
+   "Comissao":1,
+   "Id setor":2,
    "Setor": "COZINHA"
 }, {
    "Id":16, 

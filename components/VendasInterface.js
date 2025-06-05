@@ -173,6 +173,20 @@ export default function VendasInterface({ user }) {
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Product Catalog */}
+        <div className="lg:hidden">
+            <Cart 
+              cart={cart}
+              produtos={produtos}
+              onUpdateQuantity={updateQuantity}
+              onRemoveItem={removeFromCart}
+              onCheckout={handleSale}
+              isProcessingSale={isProcessingSale}
+              error={error}
+              saleStatus={saleStatus}
+              onViewLastSale={handleViewLastSale}
+            />
+          </div>
+
         <div className="lg:col-span-2">
           <ProductGrid 
             produtos={produtos}
@@ -181,7 +195,7 @@ export default function VendasInterface({ user }) {
         </div>
 
         {/* Right Column - Cart and Controls */}
-        <div className="space-y-4">
+        <div className="space-y-4 mb-40 lg:mb-0">
           <ComandaSelector 
             comandas={comandas}
             selectedComanda={selectedComanda}
@@ -199,18 +213,31 @@ export default function VendasInterface({ user }) {
             />
           )}
 
-          <Cart 
-            cart={cart}
-            produtos={produtos}
-            onUpdateQuantity={updateQuantity}
-            onRemoveItem={removeFromCart}
-            onCheckout={handleSale}
-            isProcessingSale={isProcessingSale}
-            error={error}
-            saleStatus={saleStatus}
-            onViewLastSale={handleViewLastSale}
-          />
+          <div className="hidden lg:block">
+            <Cart 
+              cart={cart}
+              produtos={produtos}
+              onUpdateQuantity={updateQuantity}
+              onRemoveItem={removeFromCart}
+              onCheckout={handleSale}
+              isProcessingSale={isProcessingSale}
+              error={error}
+              saleStatus={saleStatus}
+              onViewLastSale={handleViewLastSale}
+            />
+          </div>
         </div>
+      </div>
+
+      {/* Checkout Button - Fixed at bottom on mobile */}
+      <div className="fixed bottom-0 z-10 left-0 right-0 bg-white p-4 shadow-lg lg:hidden">
+        <button
+          className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={cart.length === 0 || isProcessingSale}
+          onClick={handleSale}
+        >
+          {isProcessingSale ? 'Processando...' : 'Finalizar Venda'}
+        </button>
       </div>
 
       {/* Comanda Details Modal */}

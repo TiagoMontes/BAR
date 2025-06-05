@@ -67,7 +67,7 @@ export default function Cart({ cart, produtos, onUpdateQuantity, onRemoveItem, o
 
       {/* Checkout Button */}
       <button
-        className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="hidden lg:block w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={cart.length === 0 || isProcessingSale}
         onClick={onCheckout}
       >

@@ -71,16 +71,16 @@ export default function ProductGrid({ produtos, onAddToCart }) {
       </div>
 
       {/* Products Grid */}
-      <div className="flex flex-wrap gap-4 justify-center">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {currentProducts.length === 0 ? (
-          <div className="w-full text-center py-8 text-gray-500">
+          <div className="col-span-full text-center py-8 text-gray-500">
             Nenhum produto encontrado
           </div>
         ) : (
           currentProducts.map(produto => (
             <div
               key={produto.Id}
-              className="bg-white p-4 w-[150px] h-[100px] rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between"
+              className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between"
               onClick={() => onAddToCart(produto)}
             >
               <h3 className="font-semibold text-sm truncate">{produto.Descricao}</h3>

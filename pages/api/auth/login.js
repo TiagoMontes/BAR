@@ -14,19 +14,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    // TODO: Restore login logic
-    /*
-    // Read operadores.json
     const operadoresPath = path.join(process.cwd(), 'data', 'operadores.json')
     const operadoresContent = await fs.readFile(operadoresPath, 'utf-8')
     const operadoresData = JSON.parse(operadoresContent)
 
-    // Validate data structure
     if (!validateOperadores(operadoresData)) {
       return res.status(500).json({ message: 'Invalid operadores data structure' })
     }
 
-    // Find matching operator
     const operador = operadoresData.operadores.find(
       op => op.Usuario.toLowerCase() === username.toLowerCase() && op.Senha === password
     )
@@ -35,7 +30,6 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'Usuário ou senha inválidos' })
     }
 
-    // Check if operator is already logged in
     const sessoesPath = path.join(process.cwd(), 'data', 'sessoes.json')
     const sessoesContent = await fs.readFile(sessoesPath, 'utf-8')
     const sessoesData = JSON.parse(sessoesContent)
@@ -51,7 +45,6 @@ export default async function handler(req, res) {
       })
     }
 
-    // Create new session
     const novaSessao = {
       operadorId: operador.Id,
       inicio: new Date().toISOString(),
@@ -61,26 +54,11 @@ export default async function handler(req, res) {
     sessoesData.sessoes.push(novaSessao)
     await fs.writeFile(sessoesPath, JSON.stringify(sessoesData, null, 2))
 
-    // Remove password from response
     const { Senha, ...operadorSemSenha } = operador
-    */
-
-    // Temporary mock user for testing
-    const mockUser = {
-      Id: 1,
-      Nome: "Usuário Teste",
-      Usuario: username,
-      Nivel: 1,
-      Ativo: true
-    }
 
     res.status(200).json({
-      user: mockUser,
-      sessao: {
-        operadorId: 1,
-        inicio: new Date().toISOString(),
-        ultimoAcesso: new Date().toISOString()
-      }
+      user: operadorSemSenha,
+      sessao: novaSessao
     })
   } catch (error) {
     console.error('Login error:', error)
