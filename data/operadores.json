@@ -1,10 +1,12 @@
 [
-  {
-    "Id": 1,
-    "Nome": "Administrador",
-    "Usuario": "admin",
-    "Senha": "admin123",
-    "Nivel": 1,
-    "Ativo": true
-  }
-] 
+
+    {
+      "Id": 1,
+      "Nome": "Administrador",
+      "Usuario": "admin",
+      "Senha": "admin123",
+      "Nivel": 1,
+      "Ativo": true
+    }
+  
+  ]

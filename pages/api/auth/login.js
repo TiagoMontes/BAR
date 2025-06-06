@@ -18,11 +18,13 @@ export default async function handler(req, res) {
     const operadoresContent = await fs.readFile(operadoresPath, 'utf-8')
     const operadoresData = JSON.parse(operadoresContent)
 
+    console.log(operadoresData)
+
     if (!validateOperadores(operadoresData)) {
       return res.status(500).json({ message: 'Invalid operadores data structure' })
     }
 
-    const operador = operadoresData.operadores.find(
+    const operador = operadoresData.find(
       op => op.Usuario.toLowerCase() === username.toLowerCase() && op.Senha === password
     )
 
@@ -62,6 +64,6 @@ export default async function handler(req, res) {
     })
   } catch (error) {
     console.error('Login error:', error)
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Internal server error' })
   }
 } 
