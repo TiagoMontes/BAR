@@ -1,39 +1,55 @@
-import { useServerConfig } from '../hooks/useServerConfig'
+import { useState } from 'react'
+import useServerConfig from '../hooks/useServerConfig'
 
 export default function ServerConfig() {
-  const { isConnected, isLoading, error } = useServerConfig()
+  const { serverUrl, setServerUrl, isConnected, isLoading, error } = useServerConfig()
+  const [newUrl, setNewUrl] = useState(serverUrl)
 
-  if (isLoading) {
-    return (
-      <div className="fixed bottom-4 right-4 bg-gray-100 p-2 rounded-lg shadow-md">
-        <div className="flex items-center space-x-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-          <span className="text-sm text-gray-600">Verificando conexão...</span>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="fixed bottom-4 right-4 bg-red-100 p-2 rounded-lg shadow-md">
-        <div className="flex items-center space-x-2">
-          <svg className="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <span className="text-sm text-red-600">{error}</span>
-        </div>
-      </div>
-    )
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    setServerUrl(newUrl)
   }
 
   return (
-    <div className="fixed bottom-4 right-4 bg-green-100 p-2 rounded-lg shadow-md">
-      <div className="flex items-center space-x-2">
-        <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-        <span className="text-sm text-green-600">Conectado ao servidor</span>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-2xl font-bold mb-4">Configuração do Servidor</h2>
+        
+        <div className="mb-4">
+          <div className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            <span className="text-sm">
+              {isLoading ? 'Verificando conexão...' : 
+               isConnected ? 'Conectado ao servidor' : 
+               'Desconectado do servidor'}
+            </span>
+          </div>
+          {error && (
+            <p className="text-red-500 text-sm mt-2">{error}</p>
+          )}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="serverUrl" className="block text-sm font-medium text-gray-700">
+              URL do Servidor
+            </label>
+            <input
+              type="text"
+              id="serverUrl"
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              placeholder="http://localhost:3001"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          >
+            Salvar Configuração
+          </button>
+        </form>
       </div>
     </div>
   )

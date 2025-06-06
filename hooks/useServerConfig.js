@@ -1,35 +1,23 @@
 import { useState, useEffect } from 'react'
-import { checkHealth } from '../lib/api'
+import config from '../lib/config.json'
 
-export function useServerConfig() {
-  const [isConnected, setIsConnected] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+const DEFAULT_SERVER_URL = config.serverUrl
+
+export const getServerUrl = () => {
+  const storedUrl = localStorage.getItem('serverUrl')
+  return storedUrl || DEFAULT_SERVER_URL
+}
+
+export default function useServerConfig() {
+  const [serverUrl, setServerUrl] = useState(getServerUrl())
 
   useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        setIsLoading(true)
-        await checkHealth()
-        setIsConnected(true)
-        setError(null)
-      } catch (err) {
-        setIsConnected(false)
-        setError('Não foi possível conectar ao servidor')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    checkConnection()
-    const interval = setInterval(checkConnection, 30000) // Check every 30 seconds
-
-    return () => clearInterval(interval)
-  }, [])
+    localStorage.setItem('serverUrl', serverUrl)
+  }, [serverUrl])
 
   return {
-    isConnected,
-    isLoading,
-    error,
+    serverUrl,
+    setServerUrl,
+    getServerUrl
   }
 } 

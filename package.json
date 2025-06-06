@@ -3,25 +3,41 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -H 0.0.0.0 -p 3000",
-    "build": "next build",
-    "start": "next start -H 0.0.0.0 -p 3000",
-    "lint": "next lint"
+    "dev": "next dev",
+    "build": "node scripts/generateConfig.js && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "deploy:server": "npm run build && npm run start",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:run:android": "npx cap run android",
+    "build:android": "npm run build && npx cap sync android && npx cap open android",
+    "build:apk": "cd android && ./gradlew assembleDebug",
+    "generate:config": "node scripts/generateConfig.js"
   },
   "dependencies": {
-    "next": "^14.1.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "tailwindcss": "^3.4.1",
+    "@capacitor-community/bluetooth-le": "^3.0.0",
+    "@capacitor/android": "^5.7.0",
+    "@capacitor/core": "^5.7.0",
+    "@capacitor/preferences": "^5.0.7",
     "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.35"
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "next": "14.1.0",
+    "postcss": "^8.4.35",
+    "react": "^18",
+    "react-dom": "^18",
+    "serve": "^14.2.1",
+    "tailwindcss": "^3.4.1"
   },
   "devDependencies": {
-    "@types/node": "^20.11.19",
-    "@types/react": "^18.2.57",
-    "@types/react-dom": "^18.2.19",
-    "typescript": "^5.3.3",
-    "eslint": "^8.56.0",
-    "eslint-config-next": "^14.1.0"
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.1.0",
+    "typescript": "^5",
+    "@capacitor/cli": "^5.7.0"
   }
-} 
+}

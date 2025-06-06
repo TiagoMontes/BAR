@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: {
-      allowedOrigins: ['localhost:3000', 'bar-opal.vercel.app']
-    }
+  output: 'export',
+  images: {
+    unoptimized: true,
   },
+  trailingSlash: true,
+  distDir: 'out',
   reactStrictMode: true,
   webpack: (config) => {
     config.module.rules.push({

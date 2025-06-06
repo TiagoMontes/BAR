@@ -8,6 +8,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
 
   // Detect mobile screen
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }

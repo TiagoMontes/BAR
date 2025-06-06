@@ -5,6 +5,7 @@ import ProductGrid from './vendas/ProductGrid'
 import Cart from './vendas/Cart'
 import ComandaSelector from './vendas/ComandaSelector'
 import AttendantSelector from './vendas/AttendantSelector'
+import Link from 'next/link'
 
 export default function VendasInterface({ user }) {
   const [comandas, setComandas] = useState([])
@@ -25,16 +26,37 @@ export default function VendasInterface({ user }) {
     const fetchData = async () => {
       try {
         setIsLoading(true)
+        setError('')
+        console.log('Iniciando carregamento de dados...')
+        
         const [comandasData, produtosData, atendentesData] = await Promise.all([
-          getComandas(),
-          getProdutos(),
-          getAtendentes()
+          getComandas().catch(err => {
+            console.error('Erro ao carregar comandas:', err)
+            throw new Error(`Erro ao carregar comandas: ${err.message}`)
+          }),
+          getProdutos().catch(err => {
+            console.error('Erro ao carregar produtos:', err)
+            throw new Error(`Erro ao carregar produtos: ${err.message}`)
+          }),
+          getAtendentes().catch(err => {
+            console.error('Erro ao carregar atendentes:', err)
+            throw new Error(`Erro ao carregar atendentes: ${err.message}`)
+          })
         ])
+
+        console.log('Dados carregados:', {
+          comandas: comandasData,
+          produtos: produtosData,
+          atendentes: atendentesData
+        })
+
         setComandas(comandasData)
         setProdutos(produtosData)
         setAtendentes(atendentesData)
       } catch (err) {
-        setError('Erro ao carregar dados')
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar dados'
+        console.error('Erro detalhado:', err)
+        setError(errorMessage)
       } finally {
         setIsLoading(false)
       }
@@ -169,9 +191,34 @@ export default function VendasInterface({ user }) {
     )
   }
 
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg">
+          <h2 className="text-lg font-semibold mb-2">Erro ao carregar dados</h2>
+          <p>{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <Link
+          href="/printer"
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          Configurar Impressora
+        </Link>
+
+
         {/* Left Column - Product Catalog */}
         <div className="lg:hidden">
             <Cart 
