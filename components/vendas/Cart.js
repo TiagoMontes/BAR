@@ -77,12 +77,11 @@ export default function Cart({ cart, produtos, onUpdateQuantity, onRemoveItem, o
       {/* Sale Status Message */}
       {saleStatus === 'success' && (
         <div className="mt-4 text-center">
-          <button
-            onClick={onViewLastSale}
-            className="text-green-600 hover:text-green-700 font-medium cursor-pointer"
+          <p
+            className="text-green-600 hover:text-green-700 font-medium"
           >
-            Venda realizada com sucesso! Clique para ver detalhes.
-          </button>
+            Venda realizada com sucesso!
+          </p>
         </div>
       )}
       {saleStatus === 'error' && (
