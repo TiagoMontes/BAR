@@ -27,9 +27,7 @@ export class BluetoothService {
     try {
       await BleClient.initialize();
       this.isInitialized = true;
-      console.log('Bluetooth initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize Bluetooth:', error);
       throw error;
     }
   }
@@ -55,7 +53,6 @@ export class BluetoothService {
         },
         (result) => {
           if (result.device) {
-            console.log('Discovered device:', result.device);
             // Only add devices that haven't been discovered yet
             if (!this.discoveredDevices.some(d => d.deviceId === result.device.deviceId)) {
               this.discoveredDevices.push(result.device);
@@ -74,7 +71,6 @@ export class BluetoothService {
 
       return this.discoveredDevices;
     } catch (error) {
-      console.error('Error scanning for devices:', error);
       throw error;
     } finally {
       this.stopScan();
@@ -100,7 +96,6 @@ export class BluetoothService {
     try {
       // Connect to the device
       await BleClient.connect(deviceId);
-      console.log('Connected to device:', deviceId);
       this.connectedDeviceId = deviceId;
 
       // Save the connected device as default
@@ -109,7 +104,6 @@ export class BluetoothService {
         value: deviceId
       });
     } catch (error) {
-      console.error('Failed to connect to device:', error);
       this.connectedDeviceId = null;
       throw error;
     }
@@ -124,10 +118,8 @@ export class BluetoothService {
       if (this.connectedDeviceId) {
         await BleClient.disconnect(this.connectedDeviceId);
         this.connectedDeviceId = null;
-        console.log('Disconnected from device');
       }
     } catch (error) {
-      console.error('Failed to disconnect:', error);
       throw error;
     }
   }
@@ -142,17 +134,10 @@ export class BluetoothService {
     }
 
     try {
-      console.log('Preparing to send data to device:', this.connectedDeviceId);
-      console.log('Using service UUID:', this.SERVICE_UUID);
-      console.log('Using characteristic UUID:', this.CHARACTERISTIC_UUID);
-
       // Convert string to DataView
       const encoder = new TextEncoder();
       const dataArray = encoder.encode(data);
       const dataView = new DataView(dataArray.buffer);
-
-      console.log('Sending data:', data);
-      console.log('Data length:', dataArray.length);
 
       // Write data to the characteristic
       await BleClient.write(
@@ -161,9 +146,7 @@ export class BluetoothService {
         this.CHARACTERISTIC_UUID,
         dataView
       );
-      console.log('Data sent successfully');
     } catch (error) {
-      console.error('Failed to send data:', error);
       if (error instanceof Error) {
         throw new Error(`Failed to send data: ${error.message}`);
       }
@@ -176,7 +159,6 @@ export class BluetoothService {
       const { value } = await Preferences.get({ key: 'defaultPrinter' });
       return value;
     } catch (error) {
-      console.error('Failed to get default printer:', error);
       return null;
     }
   }

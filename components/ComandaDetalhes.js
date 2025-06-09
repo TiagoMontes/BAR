@@ -32,6 +32,8 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
 
   if (!isOpen) return null
 
+  console.log(comanda)
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -64,7 +66,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Gasto</p>
-                <p className="font-medium text-primary">R$ {comanda.saldo?.toFixed(2) || '0.00'}</p>
+                <p className="font-medium text-primary">R$ {Number(comanda.saldo)?.toFixed(2) || '0.00'}</p>
               </div>
             </div>
           </div>
@@ -96,7 +98,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
                           Cupom: {cupomId}
                         </span>
                         <span className={`font-medium ${isHighlighted ? 'text-green-700' : ''}`}>
-                          R$ {(venda.total || 0).toFixed(2)}
+                          R$ {Number(venda.total || 0).toFixed(2)}
                         </span>
                       </div>
                       <div className="space-y-2">
@@ -104,7 +106,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
                           <div key={itemIndex} className="flex justify-between text-sm">
                             <span>{item.descricao} x {item.quantidade}</span>
                             <span className="text-gray-600">
-                              R$ {((item.quantidade * item.preco) || 0).toFixed(2)}
+                              R$ {Number((item.quantidade * item.preco) || 0).toFixed(2)}
                             </span>
                           </div>
                         ))}

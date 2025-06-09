@@ -18,8 +18,6 @@ export default async function handler(req, res) {
     const operadoresContent = await fs.readFile(operadoresPath, 'utf-8')
     const operadoresData = JSON.parse(operadoresContent)
 
-    console.log(operadoresData)
-
     if (!validateOperadores(operadoresData)) {
       return res.status(500).json({ message: 'Invalid operadores data structure' })
     }

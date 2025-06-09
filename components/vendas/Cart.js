@@ -22,7 +22,7 @@ export default function Cart({ cart, produtos, onUpdateQuantity, onRemoveItem, o
                   <div>
                     <p className="font-medium">{produto.Descricao}</p>
                     <p className="text-sm text-gray-500">
-                      R$ {produto.Preco.toFixed(2)} x {item.quantidade}
+                      R$ {Number(produto.Preco).toFixed(2)} x {item.quantidade}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -51,7 +51,7 @@ export default function Cart({ cart, produtos, onUpdateQuantity, onRemoveItem, o
             })}
             <div className="border-t pt-2 mt-2">
               <p className="font-semibold">
-                Total: R$ {calculateTotal().toFixed(2)}
+                Total: R$ {Number(calculateTotal().toFixed(2))}
               </p>
             </div>
           </div>

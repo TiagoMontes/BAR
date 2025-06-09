@@ -2,14 +2,14 @@
   {
     "Idcomanda": 3,
     "Cliente": "DJWEIUDJW",
-    "saldo": 0,
+    "saldo": 75,
     "Entrada": "31/05/2025, 18:03:19",
     "status": 0
   },
   {
     "Idcomanda": 4,
     "Cliente": "ANDRE",
-    "saldo": 0,
+    "saldo": null,
     "Entrada": "31/05/2025, 18:05:54",
     "status": 0
   },

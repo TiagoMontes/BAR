@@ -27,7 +27,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
         <div className="space-y-2">
           <p className="font-medium">{selectedComanda.Cliente}</p>
           <p className="text-sm text-gray-600">
-            ID: {selectedComanda.Idcomanda} | Saldo: R$ {selectedComanda.saldo.toFixed(2)}
+            ID: {selectedComanda.Idcomanda} | Saldo: R$ {Number(selectedComanda.saldo).toFixed(2)}
           </p>
           <div className="flex space-x-4">
             <button
@@ -79,7 +79,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                     </span>
                   </div>
                   <div className="text-sm text-gray-500">
-                    Saldo: R$ {comanda.saldo.toFixed(2)}
+                    Saldo: R$ {Number(comanda.saldo).toFixed(2)}
                   </div>
                 </div>
               ))

@@ -8,6 +8,4 @@ const config = {
 }
 
 const configPath = path.join(__dirname, '../lib/config.json')
-fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
-
-console.log(`Generated config with server URL: ${config.serverUrl}`) 
+fs.writeFileSync(configPath, JSON.stringify(config, null, 2)) 

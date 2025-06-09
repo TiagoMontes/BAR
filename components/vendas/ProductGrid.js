@@ -85,7 +85,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
               onClick={() => onAddToCart(produto)}
             >
               <h3 className="font-semibold text-sm truncate">{produto.Descricao}</h3>
-              <p className="text-gray-600 text-sm">R$ {produto.Preco.toFixed(2)}</p>
+              <p className="text-gray-600 text-sm">R$ {Number(produto.Preco.toFixed(2))}</p>
             </div>
           ))
         )}

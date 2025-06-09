@@ -45,7 +45,6 @@ export default function VendasInterface({ user }) {
       try {
         setIsLoading(true)
         setError('')
-        console.log('Iniciando carregamento de dados...')
         
         const [comandasData, produtosData, atendentesData] = await Promise.all([
           getComandas().catch(err => {
@@ -61,12 +60,6 @@ export default function VendasInterface({ user }) {
             throw new Error(`Erro ao carregar atendentes: ${err.message}`)
           })
         ])
-
-        console.log('Dados carregados (bruto):', {
-          comandas: comandasData,
-          produtos: produtosData,
-          atendentes: atendentesData
-        })
 
         setComandas(comandasData)
         setProdutos(produtosData)
@@ -163,7 +156,7 @@ export default function VendasInterface({ user }) {
       setSaleStatus('success')
       setLastSaleCupom(response.cupomId)
     } catch (err) {
-      setError('Erro ao registrar venda')
+      setError('Erro ao registrar venda: ' + err.message)
       setSaleStatus('error')
     } finally {
       setIsProcessingSale(false)

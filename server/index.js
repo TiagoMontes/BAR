@@ -81,11 +81,8 @@ app.post('/api/auth/logout', (req, res) => {
 // Data routes
 app.get('/api/operadores', async (req, res) => {
   try {
-    console.log('Lendo arquivo operadores.json...');
     const data = await fs.readFile(path.join(__dirname, '../data/operadores.json'), 'utf8');
-    console.log('Dados lidos:', data);
     const operadores = JSON.parse(data);
-    console.log('Operadores parseados:', operadores);
     res.json(operadores);
   } catch (error) {
     console.error('Erro ao ler operadores:', error);
@@ -99,11 +96,8 @@ app.get('/api/operadores', async (req, res) => {
 
 app.get('/api/produtos', async (req, res) => {
   try {
-    console.log('Lendo arquivo produtos.json...');
     const data = await fs.readFile(path.join(__dirname, '../data/produtos.json'), 'utf8');
-    console.log('Dados lidos:', data);
     const produtos = JSON.parse(data);
-    console.log('Produtos parseados:', produtos);
     res.json(produtos);
   } catch (error) {
     console.error('Erro ao ler produtos:', error);
@@ -117,11 +111,8 @@ app.get('/api/produtos', async (req, res) => {
 
 app.get('/api/comandas', async (req, res) => {
   try {
-    console.log('Lendo arquivo comandas.json...');
     const data = await fs.readFile(path.join(__dirname, '../data/comandas.json'), 'utf8');
-    console.log('Dados lidos:', data);
     const comandas = JSON.parse(data);
-    console.log('Comandas parseadas:', comandas);
     res.json(comandas);
   } catch (error) {
     console.error('Erro ao ler comandas:', error);
@@ -193,12 +184,11 @@ app.post('/api/comandas/close', async (req, res) => {
 
 app.post('/api/vendas', async (req, res) => {
   try {
-    console.log('Recebendo dados de venda:', req.body);
-    const { comandaId, produtos, atendenteId } = req.body;
+    const { comandaId, operadorId, items, atendentes } = req.body;
 
     // Validar dados
-    if (!comandaId || !produtos || !atendenteId) {
-      throw new Error('Dados incompletos: comandaId, produtos e atendenteId são obrigatórios');
+    if (!comandaId || !operadorId || !items || !Array.isArray(items)) {
+      throw new Error('Dados incompletos: comandaId, operadorId e items são obrigatórios');
     }
 
     // Ler comandas existentes
@@ -212,16 +202,65 @@ app.post('/api/vendas', async (req, res) => {
       throw new Error(`Comanda ${comandaId} não encontrada`);
     }
 
+    // Ler produtos para calcular o valor total
+    const produtosPath = path.join(__dirname, '../data/produtos.json');
+    const produtosData = await fs.readFile(produtosPath, 'utf8');
+    const produtos = JSON.parse(produtosData);
+
+    // Calcular valor total da venda
+    const valorTotal = items.reduce((total, item) => {
+      const produto = produtos.find(p => p.Id === item.produtoId);
+      return total + (produto ? produto.Preco * item.quantidade : 0);
+    }, 0);
+
     // Atualizar comanda
     const comanda = comandas[comandaIndex];
-    const valorTotal = produtos.reduce((total, p) => total + (p.preco * p.quantidade), 0);
-    comanda.saldo += valorTotal;
+    comanda.saldo = Number(comanda.saldo || 0) + valorTotal;
 
     // Salvar comandas atualizadas
     await fs.writeFile(comandasPath, JSON.stringify(comandas, null, 2));
 
-    console.log('Venda registrada com sucesso:', { comandaId, valorTotal });
-    res.json({ success: true, comanda });
+    // Gerar cupomId sequencial
+    const salesDir = path.join(__dirname, '../data/vendas');
+    try {
+      await fs.mkdir(salesDir, { recursive: true });
+    } catch (error) {
+      // Ignorar erro se o diretório já existir
+    }
+
+    // Obter todos os arquivos de cupom existentes
+    const files = await fs.readdir(salesDir);
+    const cupomFiles = files.filter(file => file.endsWith('.cv'));
+    
+    // Encontrar o maior cupomId
+    let highestCupomId = 0;
+    cupomFiles.forEach(file => {
+      const cupomId = parseInt(file.split('-')[2].split('.')[0]);
+      if (cupomId > highestCupomId) {
+        highestCupomId = cupomId;
+      }
+    });
+
+    // Gerar novo cupomId (incrementar em 1)
+    const cupomId = highestCupomId + 1;
+
+    // Criar arquivo de venda
+    const saleContent = items.map(item => {
+      const produto = produtos.find(p => p.Id === item.produtoId);
+      const atendenteIds = produto?.Comissao === 1 ? (atendentes || []).join(',') : '';
+      return `${item.produtoId}!${produto.Descricao}!${item.quantidade}!${atendenteIds}!`;
+    }).join('\n');
+
+    const saleFileName = `${String(comandaId).padStart(5, '0')}-${String(operadorId).padStart(2, '0')}-${String(cupomId).padStart(5, '0')}.cv`;
+    
+    await fs.writeFile(path.join(salesDir, saleFileName), saleContent);
+
+    res.json({ 
+      success: true, 
+      message: 'Venda registrada com sucesso',
+      cupomId,
+      comanda 
+    });
   } catch (error) {
     console.error('Erro ao registrar venda:', error);
     res.status(500).json({ 
