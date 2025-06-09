@@ -2,7 +2,7 @@
   {
     "Idcomanda": 3,
     "Cliente": "DJWEIUDJW",
-    "saldo": 75,
+    "saldo": 0,
     "Entrada": "31/05/2025, 18:03:19",
     "status": 0
   },
@@ -16,14 +16,16 @@
   {
     "Idcomanda": 5,
     "Cliente": "KDKDK",
-    "saldo": 250,
-    "Entrada": "31/05/2025, 18:41:44"
+    "saldo": 0,
+    "Entrada": "31/05/2025, 18:41:44",
+    "status": 0
   },
   {
     "Idcomanda": 6,
     "Cliente": "TIAGO MONTES",
-    "saldo": 84,
-    "Entrada": "31/05/2025, 19:03:20"
+    "saldo": 75,
+    "Entrada": "31/05/2025, 19:03:20",
+    "status": 0
   },
   {
     "Idcomanda": 7,

@@ -271,6 +271,33 @@ app.post('/api/vendas', async (req, res) => {
   }
 });
 
+// Adicionar após as outras rotas e antes do catch-all route
+app.get('/api/atendentes', async (req, res) => {
+  try {
+    const atendentesPath = path.join(__dirname, '../data/atendentes.json');
+    const atendentes = await readJsonFile(atendentesPath);
+    
+    // Validar estrutura dos dados
+    if (!Array.isArray(atendentes)) {
+      throw new Error('Invalid attendants data structure');
+    }
+
+    // Filtrar atendentes presentes e ativos
+    const presentAtendentes = atendentes.filter(
+      atendente => atendente.Presente === 1 && atendente.Situacao === 1
+    );
+
+    res.status(200).json(presentAtendentes);
+  } catch (error) {
+    console.error('Error fetching attendants:', error);
+    res.status(500).json({ 
+      error: true, 
+      message: 'Internal server error',
+      details: error.message 
+    });
+  }
+});
+
 // Catch all route to serve the Next.js app
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../out/index.html'));
