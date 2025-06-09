@@ -126,31 +126,84 @@ app.get('/api/comandas', async (req, res) => {
 
 app.post('/api/comandas/create', async (req, res) => {
   try {
-    const comandas = await readJsonFile(path.join(__dirname, '../data/comandas.json'));
+    const { cliente } = req.body;
+
+    if (!cliente) {
+      return res.status(400).json({ message: 'Nome do cliente é obrigatório' });
+    }
+
+    const comandasPath = path.join(__dirname, '../data/comandas.json');
+    const comandas = await readJsonFile(comandasPath);
+    
+    // Validar estrutura dos dados
+    if (!Array.isArray(comandas)) {
+      return res.status(500).json({ message: 'Invalid commands data structure' });
+    }
+
+    // Verificar se já existe comanda para este cliente (case insensitive)
+    const existingComanda = comandas.find(
+      c => c.Cliente.toUpperCase() === cliente.toUpperCase()
+    );
+
+    if (existingComanda) {
+      return res.status(200).json({
+        exists: true,
+        comanda: existingComanda,
+        message: 'Já existe uma comanda para este cliente'
+      });
+    }
+
+    // Gerar novo ID de comanda
+    const lastId = comandas.length > 0 
+      ? Math.max(...comandas.map(c => c.Idcomanda))
+      : 0;
+    const newId = lastId + 1;
+
+    // Criar nova comanda
     const newComanda = {
-      Idcomanda: Date.now(),
-      ...req.body,
+      Idcomanda: newId,
+      Cliente: cliente.toUpperCase(),
+      saldo: 0,
       Entrada: new Date().toLocaleString('pt-BR')
     };
+
+    // Adicionar à lista de comandas
     comandas.push(newComanda);
-    await writeJsonFile(path.join(__dirname, '../data/comandas.json'), comandas);
-    res.json(newComanda);
+    await writeJsonFile(comandasPath, comandas);
+
+    res.status(200).json({
+      exists: false,
+      comanda: newComanda
+    });
   } catch (error) {
-    console.error('Error creating comanda:', error);
-    res.status(500).json({ error: 'Erro ao criar comanda' });
+    console.error('Error creating/checking comanda:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
 app.post('/api/comandas/remove', async (req, res) => {
   try {
-    const { id } = req.body;
-    const comandas = await readJsonFile(path.join(__dirname, '../data/comandas.json'));
-    const filteredComandas = comandas.filter(c => c.Idcomanda !== id);
-    await writeJsonFile(path.join(__dirname, '../data/comandas.json'), filteredComandas);
-    res.json({ success: true });
+    const { comandaId } = req.body;
+
+    if (!comandaId) {
+      return res.status(400).json({ message: 'O ID da comanda é obrigatório' });
+    }
+
+    // Ler o arquivo de comandas
+    const comandasPath = path.join(__dirname, '../data/comandas.json');
+    const comandasData = await fs.readFile(comandasPath, 'utf8');
+    const comandas = JSON.parse(comandasData);
+
+    // Encontrar e remover a comanda
+    const updatedComandas = comandas.filter(comanda => comanda.Idcomanda !== comandaId);
+
+    // Escrever de volta no arquivo
+    await fs.writeFile(comandasPath, JSON.stringify(updatedComandas, null, 2));
+
+    res.status(200).json({ message: 'Comanda removida com sucesso' });
   } catch (error) {
     console.error('Error removing comanda:', error);
-    res.status(500).json({ error: 'Erro ao remover comanda' });
+    res.status(500).json({ message: 'Erro ao remover comanda' });
   }
 });
 

@@ -1,26 +1,5 @@
 [
   {
-    "Idcomanda": 3,
-    "Cliente": "DJWEIUDJW",
-    "saldo": 275,
-    "Entrada": "31/05/2025, 18:03:19",
-    "status": 0
-  },
-  {
-    "Idcomanda": 4,
-    "Cliente": "ANDRE",
-    "saldo": 0,
-    "Entrada": "31/05/2025, 18:05:54",
-    "status": 0
-  },
-  {
-    "Idcomanda": 5,
-    "Cliente": "KDKDK",
-    "saldo": 0,
-    "Entrada": "31/05/2025, 18:41:44",
-    "status": 0
-  },
-  {
     "Idcomanda": 6,
     "Cliente": "TIAGO MONTES",
     "saldo": 75,
@@ -30,13 +9,20 @@
   {
     "Idcomanda": 7,
     "Cliente": "SARAH",
-    "saldo": 250,
-    "Entrada": "01/06/2025, 09:52:58"
+    "saldo": 0,
+    "Entrada": "01/06/2025, 09:52:58",
+    "status": 0
   },
   {
     "Idcomanda": 8,
     "Cliente": "MARCO",
     "saldo": 1159,
     "Entrada": "01/06/2025, 10:12:57"
+  },
+  {
+    "Idcomanda": 9,
+    "Cliente": "DED",
+    "saldo": 0,
+    "Entrada": "08/06/2025, 23:37:36"
   }
 ]

@@ -145,7 +145,7 @@ export default function Comandas() {
                 </div>
               </div>
               <div className="text-sm text-gray-500">
-                Saldo: R$ {Number(comanda.saldo.toFixed(2))}
+                Saldo: R$ {comanda.saldo.toFixed(2)}
               </div>
             </div>
           ))
