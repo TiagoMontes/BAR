@@ -13,8 +13,10 @@
     "cap:open:android": "npx cap open android",
     "cap:run:android": "npx cap run android",
     "build:android": "npm run build && npx cap sync android && npx cap open android",
-    "build:apk": "cd android && ./gradlew assembleDebug",
-    "generate:config": "node scripts/generateConfig.js"
+    "build:apk": "cd android && ./gradlew assembleDebug && cd .. && mkdir -p apk && mv android/app/build/outputs/apk/debug/app-debug.apk apk/bar.apk",
+    "generate:config": "node scripts/generateConfig.js",
+    "build:dev:apk": "npm run generate:config && npm run build && npm run cap:sync && npm run build:apk",
+    "dev:all": "concurrently \"npm run dev\" \"node server/index.js\""
   },
   "dependencies": {
     "@capacitor-community/bluetooth-le": "^3.0.0",
@@ -32,6 +34,7 @@
     "tailwindcss": "^3.4.1"
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
