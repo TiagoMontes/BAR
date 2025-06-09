@@ -163,6 +163,34 @@ app.post('/api/comandas/remove', async (req, res) => {
   }
 });
 
+app.post('/api/comandas/close', async (req, res) => {
+  try {
+    const { comandaId } = req.body;
+    if (!comandaId) {
+      return res.status(400).json({ message: 'O ID da comanda é obrigatório.' });
+    }
+
+    const comandasPath = path.join(__dirname, '../data/comandas.json');
+    const comandas = await readJsonFile(comandasPath);
+    
+    const comandaIndex = comandas.findIndex(c => c.Idcomanda === comandaId);
+    if (comandaIndex === -1) {
+      return res.status(404).json({ message: 'Comanda não encontrada.' });
+    }
+
+    // Zera o saldo e muda o status para "fechada" (0)
+    comandas[comandaIndex].saldo = 0;
+    comandas[comandaIndex].status = 0;
+    
+    await writeJsonFile(comandasPath, comandas);
+
+    res.status(200).json({ message: 'Comanda fechada com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao fechar comanda:', error);
+    res.status(500).json({ message: 'Erro no servidor ao fechar a comanda.', error: error.message });
+  }
+});
+
 app.post('/api/vendas', async (req, res) => {
   try {
     console.log('Recebendo dados de venda:', req.body);

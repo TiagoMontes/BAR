@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getComandas, getProdutos, getAtendentes, registerSale } from '../lib/api'
+import { getComandas, getProdutos, getAtendentes, registerSale, closeComanda } from '../lib/api'
 import ComandaDetalhes from './ComandaDetalhes'
 import ProductGrid from './vendas/ProductGrid'
 import Cart from './vendas/Cart'
@@ -20,6 +20,24 @@ export default function VendasInterface({ user }) {
   const [showComandaDetalhes, setShowComandaDetalhes] = useState(false)
   const [saleStatus, setSaleStatus] = useState(null)
   const [lastSaleCupom, setLastSaleCupom] = useState(null)
+
+  const handleCloseComanda = async (comandaId) => {
+    try {
+      setError('');
+      await closeComanda(comandaId);
+      
+      // Atualiza a lista de comandas localmente
+      const updatedComandas = await getComandas();
+      setComandas(updatedComandas);
+
+      // Limpa a comanda selecionada
+      setSelectedComanda(null);
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || err.message || 'Erro desconhecido ao fechar a comanda';
+      setError(errorMessage);
+      console.error('Erro ao fechar comanda:', err);
+    }
+  };
 
   // Load initial data
   useEffect(() => {
@@ -44,7 +62,7 @@ export default function VendasInterface({ user }) {
           })
         ])
 
-        console.log('Dados carregados:', {
+        console.log('Dados carregados (bruto):', {
           comandas: comandasData,
           produtos: produtosData,
           atendentes: atendentesData
@@ -213,7 +231,7 @@ export default function VendasInterface({ user }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <Link
           href="/printer"
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          className="lg:hidden bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
         >
           Configurar Impressora
         </Link>
@@ -243,11 +261,20 @@ export default function VendasInterface({ user }) {
 
         {/* Right Column - Cart and Controls */}
         <div className="space-y-4 mb-40 lg:mb-0">
+
+        <Link
+          href="/printer"
+          className="hidden lg:block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          Configurar Impressora
+        </Link>
+
           <ComandaSelector 
             comandas={comandas}
             selectedComanda={selectedComanda}
             onComandaSelect={setSelectedComanda}
             onShowDetails={setShowComandaDetalhes}
+            onCloseComanda={handleCloseComanda}
           />
 
           {/* Attendant Selection - Only show if there are commission products */}

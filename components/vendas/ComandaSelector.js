@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-export default function ComandaSelector({ comandas, selectedComanda, onComandaSelect, onShowDetails }) {
+export default function ComandaSelector({ comandas, selectedComanda, onComandaSelect, onShowDetails, onCloseComanda }) {
   const [comandaSearchTerm, setComandaSearchTerm] = useState('')
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false)
 
   // Filter comandas based on search term
   const filteredComandas = comandas.filter(comanda => 
@@ -28,7 +29,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
           <p className="text-sm text-gray-600">
             ID: {selectedComanda.Idcomanda} | Saldo: R$ {selectedComanda.saldo.toFixed(2)}
           </p>
-          <div className="flex space-x-2">
+          <div className="flex space-x-4">
             <button
               onClick={() => onComandaSelect(null)}
               className="text-sm text-red-600 hover:text-red-700"
@@ -40,6 +41,12 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
               className="text-sm text-primary hover:text-primary-dark"
             >
               Detalhes
+            </button>
+            <button
+              onClick={() => setIsCloseModalOpen(true)}
+              className="text-sm text-yellow-600 hover:text-yellow-700"
+            >
+              Fechar Comanda
             </button>
           </div>
         </div>
@@ -77,6 +84,36 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                 </div>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {isCloseModalOpen && selectedComanda && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
+            <h3 className="text-lg font-semibold mb-4">Quer mesmo fechar a comanda?</h3>
+            <p className="text-gray-600 mb-6">
+              A comanda de <span className="font-bold">{selectedComanda.Cliente}</span> será fechada e o seu saldo será zerado. Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setIsCloseModalOpen(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (onCloseComanda) {
+                    onCloseComanda(selectedComanda.Idcomanda)
+                  }
+                  setIsCloseModalOpen(false)
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Fechar
+              </button>
+            </div>
           </div>
         </div>
       )}
