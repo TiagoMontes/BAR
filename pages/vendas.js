@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import VendasInterface from '../components/VendasInterface'
+import { getServerUrl } from '../hooks/useServerConfig'
+import { logout } from '../lib/api'
 
 export default function Vendas() {
   const router = useRouter()
@@ -22,30 +24,6 @@ export default function Vendas() {
       setIsLoading(false)
     }
   }, [router])
-
-  const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ operadorId: user.Id }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Erro ao fazer logout')
-      }
-
-      localStorage.removeItem('user')
-      router.push('/')
-    } catch (err) {
-      console.error('Erro ao fazer logout:', err)
-      // Even if the API call fails, we still want to clear the local session
-      localStorage.removeItem('user')
-      router.push('/')
-    }
-  }
 
   if (isLoading) {
     return (
@@ -69,7 +47,11 @@ export default function Vendas() {
               Operador: {user.Nome}
             </span>
             <button
-              onClick={handleLogout}
+              onClick={() => {
+                logout(user.Id)
+                localStorage.removeItem('user')
+                router.push('/')
+              }}
               className="px-4 py-2 text-sm text-red-600 hover:text-red-700"
             >
               Sair

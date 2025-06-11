@@ -104,8 +104,27 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.post('/api/auth/logout', (req, res) => {
-  res.json({ success: true });
+app.post('/api/auth/logout', async (req, res) => {
+  const { operadorId } = req.body;
+
+  if (!operadorId) {
+    return res.status(400).json({ message: 'Operador ID is required' });
+  }
+
+  try {
+    const sessoesPath = path.join(__dirname, '../data/sessoes.json');
+    const sessoesContent = await fs.readFile(sessoesPath, 'utf-8');
+    const sessoesData = JSON.parse(sessoesContent);
+
+    // Remove session
+    sessoesData.sessoes = sessoesData.sessoes.filter(s => s.operadorId !== operadorId);
+    await fs.writeFile(sessoesPath, JSON.stringify(sessoesData, null, 2));
+
+    res.status(200).json({ message: 'Logout successful' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 // Data routes
