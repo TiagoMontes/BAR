@@ -5,7 +5,9 @@ import ProductGrid from './vendas/ProductGrid'
 import Cart from './vendas/Cart'
 import ComandaSelector from './vendas/ComandaSelector'
 import AttendantSelector from './vendas/AttendantSelector'
+import PrinterModal from './PrinterModal'
 import Link from 'next/link'
+import { BluetoothService } from '../src/services/BluetoothService'
 
 export default function VendasInterface({ user }) {
   const [comandas, setComandas] = useState([])
@@ -20,6 +22,11 @@ export default function VendasInterface({ user }) {
   const [showComandaDetalhes, setShowComandaDetalhes] = useState(false)
   const [saleStatus, setSaleStatus] = useState(null)
   const [lastSaleCupom, setLastSaleCupom] = useState(null)
+  const [isPrinterModalOpen, setIsPrinterModalOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState()
+  const [printerStatus, setPrinterStatus] = useState('')
+
+  const bluetoothService = BluetoothService.getInstance();
 
   const handleCloseComanda = async (comandaId) => {
     try {
@@ -86,6 +93,22 @@ export default function VendasInterface({ user }) {
     }
   }, [comandas, selectedComanda])
 
+  // Check printer status periodically
+  useEffect(() => {
+    const checkPrinterStatus = () => {
+      const status = bluetoothService.getConnectionStatus();
+      if (status.isConnected) {
+        setPrinterStatus(`Impressora conectada: ${status.deviceName || 'Dispositivo'}`);
+      } else {
+        setPrinterStatus('Impressora não conectada');
+      }
+    };
+
+    checkPrinterStatus();
+    const interval = setInterval(checkPrinterStatus, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const addToCart = (produto) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.produtoId === produto.Id)
@@ -129,6 +152,50 @@ export default function VendasInterface({ user }) {
     })
   }
 
+  const formatReceipt = (saleData, comanda, cupomId) => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR', { 
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).replace(',', '');
+
+    let receipt = `${dateStr}\n`;
+    receipt += `--------------------------------\n`;
+    receipt += `Cli.: ${comanda.Idcomanda} - ${comanda.Cliente}\n`;
+    receipt += `Comanda ${comanda.Idcomanda} Id Venda: ${cupomId}\n`;
+    receipt += `--------------------------------\n`;
+    receipt += `Código Descricao Produto\n`;
+    receipt += `Vr Unit. Qtde Vr Total\n\n`;
+
+    let totalQuantity = 0;
+    let totalValue = 0;
+
+    saleData.items.forEach(item => {
+      const produto = produtos.find(p => p.Id === item.produtoId);
+      if (produto) {
+        const itemTotal = produto.Preco * item.quantidade;
+        totalQuantity += item.quantidade;
+        totalValue += itemTotal;
+
+        receipt += `# ${String(produto.Id).padStart(3, '0')} ${produto.Descricao}\n`;
+        receipt += `## ${produto.Preco.toFixed(2)} ${String(item.quantidade).padStart(3, '0')} ${itemTotal.toFixed(2)}\n\n`;
+      }
+    });
+
+    receipt += `--------------------------------\n`;
+    receipt += `# Qtde. ${String(totalQuantity).padStart(3, '0')} Total: ${totalValue.toFixed(2)}\n\n`;
+    receipt += `TecBar\n\n\n\n`;
+
+    return receipt;
+  };
+
+  const handlePrinterSetup = () => {
+    setIsPrinterModalOpen(true);
+  };
+
   const handleSale = async () => {
     if (!selectedComanda || cart.length === 0) {
       setError('Selecione uma comanda e adicione itens ao carrinho')
@@ -138,6 +205,9 @@ export default function VendasInterface({ user }) {
     try {
       setIsProcessingSale(true)
       setSaleStatus(null)
+      setErrorMessage('')
+
+      // Registra a venda primeiro
       const response = await registerSale({
         comandaId: selectedComanda.Idcomanda,
         operadorId: user.Nivel,
@@ -149,19 +219,83 @@ export default function VendasInterface({ user }) {
       const updatedComandas = await getComandas()
       setComandas(updatedComandas)
       
+      // Format receipt
+      const receipt = formatReceipt(
+        { items: cart },
+        selectedComanda,
+        response.cupomId
+      );
+      
+      // Tenta imprimir o cupom
+      let printSuccess = false;
+      let printError = '';
+
+      try {
+        console.log('Iniciando processo de impressão...');
+        await bluetoothService.initialize();
+        console.log('Bluetooth inicializado, enviando dados...');
+        await bluetoothService.sendData(receipt);
+        console.log('Dados enviados com sucesso!');
+        printSuccess = true;
+        setSaleStatus('success');
+        setErrorMessage('');
+      } catch (printErr) {
+        console.error('Erro ao imprimir:', printErr);
+        printError = printErr.message || 'Erro desconhecido na impressão';
+        setSaleStatus('warning');
+        
+        // Mensagens de erro mais específicas
+        if (printError.includes('not initialized') || printError.includes('not connected')) {
+          setErrorMessage(`Venda realizada com sucesso! Porém, a impressora não está conectada. Clique em "Configurar Impressora" para conectar.`);
+        } else if (printError.includes('No device')) {
+          setErrorMessage(`Venda realizada com sucesso! Porém, nenhuma impressora foi encontrada. Verifique se a impressora está ligada e pareada.`);
+        } else if (printError.includes('writing characteristic failed')) {
+          setErrorMessage(`Venda realizada com sucesso! Porém, falha na comunicação com a impressora. Tente reconectar a impressora.`);
+        } else {
+          setErrorMessage(`Venda realizada com sucesso! Porém, erro na impressão: ${printError}. Verifique a conexão da impressora.`);
+        }
+      }
+      
       // Clear cart and selected attendants
       setCart([])
       setSelectedAtendentes([])
-      setError('')
-      setSaleStatus('success')
       setLastSaleCupom(response.cupomId)
+
+      // Se a impressão falhou, oferece opções ao usuário
+      if (!printSuccess) {
+        setTimeout(() => {
+          const shouldRetry = window.confirm(
+            'Venda realizada com sucesso, mas houve erro na impressão.\n\n' +
+            'Deseja tentar imprimir novamente?'
+          );
+          
+          if (shouldRetry) {
+            handleRetryPrint(receipt);
+          }
+        }, 2000);
+      }
+
     } catch (err) {
-      setError('Erro ao registrar venda: ' + err.message)
+      console.error('Erro ao registrar venda:', err);
+      setErrorMessage('Erro ao registrar venda: ' + (err.message || 'Erro desconhecido'))
       setSaleStatus('error')
     } finally {
       setIsProcessingSale(false)
     }
   }
+
+  const handleRetryPrint = async (receipt) => {
+    try {
+      setErrorMessage('Tentando imprimir novamente...');
+      await bluetoothService.initialize();
+      await bluetoothService.sendData(receipt);
+      setErrorMessage('Cupom impresso com sucesso!');
+      setSaleStatus('success');
+    } catch (retryError) {
+      console.error('Erro ao tentar imprimir novamente:', retryError);
+      setErrorMessage(`Erro ao imprimir: ${retryError.message || 'Erro desconhecido'}. Verifique a conexão da impressora.`);
+    }
+  };
 
   const handleViewLastSale = () => {
     setShowComandaDetalhes(true)
@@ -221,82 +355,109 @@ export default function VendasInterface({ user }) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <Link
-          href="/printer"
-          className="lg:hidden bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+      {/* Status da impressora */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <div className={`w-3 h-3 rounded-full ${
+            printerStatus.includes('conectada') ? 'bg-green-500' : 'bg-red-500'
+          }`}></div>
+          <span className="text-sm text-gray-600">{printerStatus}</span>
+        </div>
+        <button
+          onClick={handlePrinterSetup}
+          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
+          title="Configurar Impressora"
         >
-          Configurar Impressora
-        </Link>
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+            />
+          </svg>
+        </button>
+      </div>
 
+      {/* Mensagens de status */}
+      {errorMessage && (
+        <div className={`mb-4 p-4 rounded-lg ${
+          saleStatus === 'success' ? 'bg-green-50 border border-green-200 text-green-600' :
+          saleStatus === 'warning' ? 'bg-yellow-50 border border-yellow-200 text-yellow-600' :
+          'bg-red-50 border border-red-200 text-red-600'
+        }`}>
+          <p>{errorMessage}</p>
+        </div>
+      )}
 
-        {/* Left Column - Product Catalog */}
-        <div className="lg:hidden">
-            <Cart 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Seleção de Comanda */}
+        <div className="lg:col-span-1">
+        <ComandaSelector
+          comandas={comandas}
+          selectedComanda={selectedComanda}
+          onComandaSelect={setSelectedComanda}
+          onShowDetails={setShowComandaDetalhes}  // Add this line
+          onCloseComanda={handleCloseComanda}
+        />
+          
+          {/* Seleção de Atendentes */}
+          {hasCommissionProducts() && (
+            <div className="mt-6">
+              <AttendantSelector
+                atendentes={atendentes}
+                selectedAtendentes={selectedAtendentes}
+                onSelectAttendant={handleSelectAttendant}
+                onRemoveAttendant={handleRemoveAttendant}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="lg:col-span-2">
+            <Cart
               cart={cart}
               produtos={produtos}
+              onRemoveFromCart={removeFromCart}
               onUpdateQuantity={updateQuantity}
-              onRemoveItem={removeFromCart}
-              onCheckout={handleSale}
+              onSale={handleSale}
               isProcessingSale={isProcessingSale}
-              error={error}
-              saleStatus={saleStatus}
-              onViewLastSale={handleViewLastSale}
+              selectedComanda={selectedComanda}
             />
           </div>
 
-        <div className="lg:col-span-2">
-          <ProductGrid 
+        {/* Grid de Produtos */}
+        <div className="lg:col-span-1">
+          <ProductGrid
             produtos={produtos}
             onAddToCart={addToCart}
           />
         </div>
-
-        {/* Right Column - Cart and Controls */}
-        <div className="space-y-4 mb-40 lg:mb-0">
-
-        <Link
-          href="/printer"
-          className="hidden lg:block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          Configurar Impressora
-        </Link>
-
-          <ComandaSelector 
-            comandas={comandas}
-            selectedComanda={selectedComanda}
-            onComandaSelect={setSelectedComanda}
-            onShowDetails={setShowComandaDetalhes}
-            onCloseComanda={handleCloseComanda}
-          />
-
-          {/* Attendant Selection - Only show if there are commission products */}
-          {hasCommissionProducts() && (
-            <AttendantSelector 
-              atendentes={atendentes}
-              selectedAtendentes={selectedAtendentes}
-              onSelectAttendant={handleSelectAttendant}
-              onRemoveAttendant={handleRemoveAttendant}
-            />
-          )}
-
-          <div className="hidden lg:block">
-            <Cart 
-              cart={cart}
-              produtos={produtos}
-              onUpdateQuantity={updateQuantity}
-              onRemoveItem={removeFromCart}
-              onCheckout={handleSale}
-              isProcessingSale={isProcessingSale}
-              error={error}
-              saleStatus={saleStatus}
-              onViewLastSale={handleViewLastSale}
-            />
-          </div>
-        </div>
       </div>
 
-      {/* Checkout Button - Fixed at bottom on mobile */}
+      {/* Modals */}
+      {showComandaDetalhes && selectedComanda && (
+        <ComandaDetalhes
+          comanda={selectedComanda}
+          isOpen={showComandaDetalhes}           // Add this prop
+          onClose={() => setShowComandaDetalhes(false)}
+          highlightCupom={lastSaleCupom}         // Change from cupomId to highlightCupom
+        />
+      )}
+
+      {isPrinterModalOpen && (
+        <PrinterModal
+          isOpen={isPrinterModalOpen}
+          onClose={() => setIsPrinterModalOpen(false)}
+          bluetoothService={bluetoothService}
+        />
+      )}
+
       <div className="fixed bottom-0 z-10 left-0 right-0 bg-white p-4 shadow-lg lg:hidden">
         <button
           className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -306,16 +467,6 @@ export default function VendasInterface({ user }) {
           {isProcessingSale ? 'Processando...' : 'Finalizar Venda'}
         </button>
       </div>
-
-      {/* Comanda Details Modal */}
-      {selectedComanda && (
-        <ComandaDetalhes 
-          comanda={selectedComanda} 
-          isOpen={showComandaDetalhes}
-          onClose={() => setShowComandaDetalhes(false)}
-          highlightCupom={lastSaleCupom}
-        />
-      )}
     </div>
   )
-} 
+}

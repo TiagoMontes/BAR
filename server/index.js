@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { validateOperadores } = require('../lib/validators');
 const fs = require('fs').promises;
 
 const app = express();
@@ -43,34 +44,63 @@ app.get('/api/health', (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    const operadores = await readJsonFile(path.join(__dirname, '../data/operadores.json'));
     
-    const operador = operadores.find(op => 
-      op.Usuario === username && op.Senha === password
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Username and password are required' });
+    }
+
+    const operadoresPath = path.join(__dirname, '../data/operadores.json');
+    const operadoresContent = await fs.readFile(operadoresPath, 'utf-8');
+    const operadores = JSON.parse(operadoresContent);
+
+    if (!validateOperadores(operadores)) {
+      return res.status(500).json({ message: 'Invalid operadores data structure' });
+    }
+
+    const operador = operadores.find(
+      op => op.Usuario.toLowerCase() === username.toLowerCase() && op.Senha === password
     );
 
-    if (operador) {
-      res.json({ 
-        success: true, 
-        user: {
-          id: operador.Id,
-          name: operador.Nome,
-          username: operador.Usuario,
-          role: operador.Nivel === 1 ? 'admin' : 'operador'
+    if (!operador) {
+      return res.status(401).json({ message: 'Usuário ou senha inválidos' });
+    }
+
+    // Check for active sessions
+    const sessoesPath = path.join(__dirname, '../data/sessoes.json');
+    const sessoesContent = await fs.readFile(sessoesPath, 'utf-8');
+    const sessoesData = JSON.parse(sessoesContent);
+
+    const sessaoAtiva = sessoesData.sessoes.find(s => s.operadorId === operador.Id);
+    if (sessaoAtiva) {
+      return res.status(409).json({ 
+        message: 'Operador já está logado em outra sessão',
+        sessaoAtiva: {
+          operadorId: sessaoAtiva.operadorId,
+          ultimoAcesso: sessaoAtiva.ultimoAcesso
         }
       });
-    } else {
-      res.status(401).json({ 
-        success: false, 
-        message: 'Usuário ou senha inválidos' 
-      });
     }
+
+    // Create new session
+    const novaSessao = {
+      operadorId: operador.Id,
+      inicio: new Date().toISOString(),
+      ultimoAcesso: new Date().toISOString()
+    };
+
+    sessoesData.sessoes.push(novaSessao);
+    await fs.writeFile(sessoesPath, JSON.stringify(sessoesData, null, 2));
+
+    // Remove password from response
+    const { Senha, ...operadorSemSenha } = operador;
+
+    res.status(200).json({
+      user: operadorSemSenha,
+      sessao: novaSessao
+    });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erro ao fazer login' 
-    });
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

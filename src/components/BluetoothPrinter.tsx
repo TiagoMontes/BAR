@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { BluetoothService } from '../services/BluetoothService';
-import { BleClient } from '@capacitor-community/bluetooth-le';
-import { Capacitor } from '@capacitor/core';
 
 export const BluetoothPrinter: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);

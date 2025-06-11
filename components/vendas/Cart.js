@@ -77,10 +77,15 @@ export default function Cart({ cart, produtos, onUpdateQuantity, onRemoveItem, o
       {/* Sale Status Message */}
       {saleStatus === 'success' && (
         <div className="mt-4 text-center">
-          <p
-            className="text-green-600 hover:text-green-700 font-medium"
-          >
+          <p className="text-green-600 hover:text-green-700 font-medium">
             Venda realizada com sucesso!
+          </p>
+        </div>
+      )}
+      {saleStatus === 'warning' && (
+        <div className="mt-4 text-center">
+          <p className="text-yellow-600 hover:text-yellow-700 font-medium">
+            Venda realizada, mas houve problema com a impressora.
           </p>
         </div>
       )}
