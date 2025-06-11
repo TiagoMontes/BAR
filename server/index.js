@@ -349,7 +349,7 @@ app.post('/api/vendas', async (req, res) => {
     // Criar arquivo de venda
     const saleContent = items.map(item => {
       const produto = produtos.find(p => p.Id === item.produtoId);
-      const atendenteIds = produto?.Comissao === 1 ? (atendentes || []).join(',') : '';
+      const atendenteIds = produto?.Comissao > 0 ? (atendentes || []).join(',') : '';
       return `${item.produtoId}!${produto.Descricao}!${item.quantidade}!${atendenteIds}!`;
     }).join('\n');
 
@@ -395,6 +395,67 @@ app.get('/api/atendentes', async (req, res) => {
     res.status(500).json({ 
       error: true, 
       message: 'Internal server error',
+      details: error.message 
+    });
+  }
+});
+
+// Get sales data for a specific comanda
+app.get('/api/vendas/comanda/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Read produtos.json to get prices
+    const produtosPath = path.join(__dirname, '../data/produtos.json');
+    const produtosContent = await fs.readFile(produtosPath, 'utf-8');
+    const produtos = JSON.parse(produtosContent);
+
+    const salesDir = path.join(__dirname, '../data/vendas');
+    const files = await fs.readdir(salesDir);
+    
+    // Filter files for this comanda
+    const comandaFiles = files.filter(file => 
+      file.startsWith(String(id).padStart(5, '0'))
+    );
+
+    // Read and parse each sale file
+    const vendasData = await Promise.all(
+      comandaFiles.map(async (file) => {
+        const content = await fs.readFile(path.join(salesDir, file), 'utf-8');
+        const items = content.split('\n').filter(Boolean).map(line => {
+          const [produtoId, descricao, quantidade, atendenteIds] = line.split('!');
+          const produto = produtos.find(p => p.Id === Number(produtoId));
+          
+          // Parse atendente IDs - handle both empty string and comma-separated values
+          const atendentes = atendenteIds ? 
+            atendenteIds.split(',').filter(id => id).map(Number) : 
+            [];
+
+          return {
+            produtoId: Number(produtoId),
+            descricao,
+            quantidade: Number(quantidade),
+            atendentes,
+            preco: produto ? produto.Preco : 0
+          };
+        });
+
+        const total = items.reduce((sum, item) => sum + (item.quantidade * item.preco), 0);
+
+        return {
+          fileName: file,
+          items,
+          total
+        };
+      })
+    );
+
+    res.status(200).json(vendasData);
+  } catch (error) {
+    console.error('Error fetching sales:', error);
+    res.status(500).json({ 
+      error: true, 
+      message: 'Error fetching sales data',
       details: error.message 
     });
   }

@@ -9,6 +9,55 @@ import PrinterModal from './PrinterModal'
 import Link from 'next/link'
 import { BluetoothService } from '../src/services/BluetoothService'
 
+// Novo componente modal para cupom de atendente
+const AttendantReceiptModal = ({ isOpen, attendant, commissionValue, receipt, onPrint, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">
+            Imprimir cupom da atendente: {attendant?.Apelido || 'N/A'}
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-2">
+            Comissão total: R$ {commissionValue.toFixed(2)}
+          </p>
+          <div className="bg-gray-50 p-3 rounded text-xs font-mono whitespace-pre-line max-h-40 overflow-y-auto">
+            {receipt}
+          </div>
+        </div>
+        
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+          >
+            Fechar
+          </button>
+          <button
+            onClick={onPrint}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Imprimir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function VendasInterface({ user }) {
   const [comandas, setComandas] = useState([])
   const [produtos, setProdutos] = useState([])
@@ -25,6 +74,10 @@ export default function VendasInterface({ user }) {
   const [isPrinterModalOpen, setIsPrinterModalOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState()
   const [printerStatus, setPrinterStatus] = useState('')
+  
+  // Novos estados para cupom de atendente
+  const [attendantModalQueue, setAttendantModalQueue] = useState([])
+  const [currentAttendantModal, setCurrentAttendantModal] = useState(null)
 
   const bluetoothService = BluetoothService.getInstance();
 
@@ -109,6 +162,15 @@ export default function VendasInterface({ user }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Gerenciar fila de modais de atendente
+  useEffect(() => {
+    if (attendantModalQueue.length > 0 && !currentAttendantModal) {
+      const nextModal = attendantModalQueue[0];
+      setCurrentAttendantModal(nextModal);
+      setAttendantModalQueue(prev => prev.slice(1));
+    }
+  }, [attendantModalQueue, currentAttendantModal]);
+
   const addToCart = (produto) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.produtoId === produto.Id)
@@ -122,7 +184,7 @@ export default function VendasInterface({ user }) {
       return [...prevCart, { 
         produtoId: produto.Id, 
         quantidade: 1, 
-        atendenteId: produto.Comissao === 1 ? selectedAtendentes[0]?.id || null : null
+        atendenteId: produto.Comissao > 0 ? selectedAtendentes[0]?.id || null : null
       }]
     })
   }
@@ -148,7 +210,7 @@ export default function VendasInterface({ user }) {
   const hasCommissionProducts = () => {
     return cart.some(item => {
       const produto = produtos.find(p => p.Id === item.produtoId)
-      return produto?.Comissao === 1
+      return produto?.Comissao > 0
     })
   }
 
@@ -192,6 +254,82 @@ export default function VendasInterface({ user }) {
     return receipt;
   };
 
+  // Nova função para formatar cupom de atendente
+  const formatAttendantReceipt = (attendant, commissionItems, comanda, cupomId) => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR', { 
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).replace(',', '');
+
+    let receipt = `${dateStr}\n`;
+    receipt += `================================\n`;
+    receipt += `CUPOM DE COMISSAO\n`;
+    receipt += `================================\n`;
+    receipt += `Atendente: ${attendant.Apelido} - ${attendant.id}\n`;
+    receipt += `Cliente: ${comanda.Cliente}\n`;
+    receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
+    receipt += `--------------------------------\n`;
+    receipt += `Produtos com Comissao:\n\n`;
+
+    let totalCommission = 0;
+
+    commissionItems.forEach(({ item, produto, commissionPerAttendant }) => {
+      const itemCommissionTotal = commissionPerAttendant * item.quantidade;
+      totalCommission += itemCommissionTotal;
+
+      receipt += `# ${String(produto.Id).padStart(3, '0')} ${produto.Descricao}\n`;
+      receipt += `## Qtde: ${item.quantidade} - Comissao: R$ ${commissionPerAttendant.toFixed(2)}\n`;
+      receipt += `## Total: R$ ${itemCommissionTotal.toFixed(2)}\n\n`;
+    });
+
+    receipt += `--------------------------------\n`;
+    receipt += `TOTAL COMISSAO: R$ ${totalCommission.toFixed(2)}\n`;
+    receipt += `================================\n`;
+    receipt += `TecBar\n\n\n\n`;
+
+    return receipt;
+  };
+
+  // Calcular comissões por atendente
+  const calculateAttendantCommissions = () => {
+    const attendantCommissions = {};
+
+    // Inicializar para cada atendente selecionado
+    selectedAtendentes.forEach(attendant => {
+      attendantCommissions[attendant.id] = {
+        attendant,
+        items: [],
+        totalCommission: 0
+      };
+    });
+
+    // Processar itens do carrinho
+    cart.forEach(item => {
+      const produto = produtos.find(p => p.Id === item.produtoId);
+      if (produto && produto.Comissao > 0) {
+        const commissionPerAttendant = produto.Comissao / selectedAtendentes.length;
+        
+        selectedAtendentes.forEach(attendant => {
+          if (attendantCommissions[attendant.id]) {
+            attendantCommissions[attendant.id].items.push({
+              item,
+              produto,
+              commissionPerAttendant
+            });
+            attendantCommissions[attendant.id].totalCommission += 
+              commissionPerAttendant * item.quantidade;
+          }
+        });
+      }
+    });
+
+    return Object.values(attendantCommissions).filter(ac => ac.items.length > 0);
+  };
+
   const handlePrinterSetup = () => {
     setIsPrinterModalOpen(true);
   };
@@ -226,7 +364,7 @@ export default function VendasInterface({ user }) {
         response.cupomId
       );
       
-      // Tenta imprimir o cupom
+      // Tenta imprimir o cupom principal
       let printSuccess = false;
       let printError = '';
 
@@ -253,6 +391,26 @@ export default function VendasInterface({ user }) {
           setErrorMessage(`Venda realizada com sucesso! Porém, falha na comunicação com a impressora. Tente reconectar a impressora.`);
         } else {
           setErrorMessage(`Venda realizada com sucesso! Porém, erro na impressão: ${printError}. Verifique a conexão da impressora.`);
+        }
+      }
+
+      // Preparar cupons de atendente se houver produtos com comissão
+      if (selectedAtendentes.length > 0) {
+        const attendantCommissions = calculateAttendantCommissions();
+        
+        if (attendantCommissions.length > 0) {
+          const modalsQueue = attendantCommissions.map(commission => ({
+            attendant: commission.attendant,
+            commissionValue: commission.totalCommission,
+            receipt: formatAttendantReceipt(
+              commission.attendant,
+              commission.items,
+              selectedComanda,
+              response.cupomId
+            )
+          }));
+          
+          setAttendantModalQueue(modalsQueue);
         }
       }
       
@@ -297,6 +455,18 @@ export default function VendasInterface({ user }) {
     }
   };
 
+  // Função para imprimir cupom de atendente
+  const handlePrintAttendantReceipt = async (receipt) => {
+    try {
+      await bluetoothService.initialize();
+      await bluetoothService.sendData(receipt);
+      console.log('Cupom de atendente impresso com sucesso!');
+    } catch (error) {
+      console.error('Erro ao imprimir cupom de atendente:', error);
+      alert(`Erro ao imprimir cupom de atendente: ${error.message}`);
+    }
+  };
+
   const handleViewLastSale = () => {
     setShowComandaDetalhes(true)
     setLastSaleCupom(lastSaleCupom)
@@ -308,7 +478,7 @@ export default function VendasInterface({ user }) {
     setCart(prevCart => 
       prevCart.map(item => {
         const produto = produtos.find(p => p.Id === item.produtoId)
-        return produto?.Comissao === 1 
+        return produto?.Comissao > 0 
           ? { ...item, atendenteId: atendente.id }
           : item
       })
@@ -321,7 +491,7 @@ export default function VendasInterface({ user }) {
     setCart(prevCart => 
       prevCart.map(item => {
         const produto = produtos.find(p => p.Id === item.produtoId)
-        return produto?.Comissao === 1 
+        return produto?.Comissao > 0 
           ? { ...item, atendenteId: null }
           : item
       })
@@ -402,7 +572,7 @@ export default function VendasInterface({ user }) {
           comandas={comandas}
           selectedComanda={selectedComanda}
           onComandaSelect={setSelectedComanda}
-          onShowDetails={setShowComandaDetalhes}  // Add this line
+          onShowDetails={setShowComandaDetalhes}
           onCloseComanda={handleCloseComanda}
         />
           
@@ -444,9 +614,9 @@ export default function VendasInterface({ user }) {
       {showComandaDetalhes && selectedComanda && (
         <ComandaDetalhes
           comanda={selectedComanda}
-          isOpen={showComandaDetalhes}           // Add this prop
+          isOpen={showComandaDetalhes}
           onClose={() => setShowComandaDetalhes(false)}
-          highlightCupom={lastSaleCupom}         // Change from cupomId to highlightCupom
+          highlightCupom={lastSaleCupom}
         />
       )}
 
@@ -457,6 +627,19 @@ export default function VendasInterface({ user }) {
           bluetoothService={bluetoothService}
         />
       )}
+
+      {/* Modal para cupom de atendente */}
+      <AttendantReceiptModal
+        isOpen={!!currentAttendantModal}
+        attendant={currentAttendantModal?.attendant}
+        commissionValue={currentAttendantModal?.commissionValue || 0}
+        receipt={currentAttendantModal?.receipt || ''}
+        onPrint={async () => {
+          await handlePrintAttendantReceipt(currentAttendantModal.receipt);
+          setCurrentAttendantModal(null);
+        }}
+        onClose={() => setCurrentAttendantModal(null)}
+      />
 
       <div className="fixed bottom-0 z-10 left-0 right-0 bg-white p-4 shadow-lg lg:hidden">
         <button

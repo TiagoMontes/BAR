@@ -1,9 +1,54 @@
 import { useState, useEffect } from 'react'
+import { getComanda } from '../lib/api'
+import { useAtendentes } from '../contexts/AtendentesContext'
+import { BluetoothService } from '../src/services/BluetoothService'
 
 export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCupom }) {
   const [vendas, setVendas] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [saleStatus, setSaleStatus] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const { atendentes } = useAtendentes()
+
+  const bluetoothService = BluetoothService.getInstance();
+
+  const formatReceipt = (venda, comanda, cupomId) => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR', { 
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).replace(',', '');
+  
+    let receipt = `${dateStr}\n`;
+    receipt += `--------------------------------\n`;
+    receipt += `Cliente: ${comanda.Cliente}\n`;
+    receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
+    receipt += `--------------------------------\n`;
+    receipt += `Código Descricao Produto\n`;
+    receipt += `Vr Unit. Qtde Vr Total\n\n`;
+  
+    let totalQuantity = 0;
+    let totalValue = 0;
+  
+    venda.items.forEach(item => {
+      const itemTotal = item.preco * item.quantidade;
+      totalQuantity += item.quantidade;
+      totalValue += itemTotal;
+  
+      receipt += `# ${String(item.produtoId).padStart(3, '0')} ${item.descricao}\n`;
+      receipt += `## ${item.preco.toFixed(2)} ${String(item.quantidade).padStart(3, '0')} ${itemTotal.toFixed(2)}\n\n`;
+    });
+  
+    receipt += `--------------------------------\n`;
+    receipt += `# Qtde. ${String(totalQuantity).padStart(3, '0')} Total: ${totalValue.toFixed(2)}\n\n`;
+    receipt += `TecBar\n\n\n\n`;
+  
+    return receipt;
+  };
 
   useEffect(() => {
     const loadVendas = async () => {
@@ -11,15 +56,11 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
 
       try {
         setIsLoading(true)
-        const response = await fetch(`/api/vendas/comanda/${comanda.Idcomanda}`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch sales data')
-        }
-        const vendasData = await response.json()
+        const vendasData = await getComanda(comanda.Idcomanda)
         setVendas(vendasData.reverse())
       } catch (err) {
         console.error('Error loading sales:', err)
-        setError('Erro ao carregar histórico de vendas')
+        setError(err.message || 'Erro ao carregar histórico de vendas')
       } finally {
         setIsLoading(false)
       }
@@ -29,6 +70,43 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
       loadVendas()
     }
   }, [comanda, isOpen])
+
+  const handleVendaClick = async (venda) => {
+    const cupomId = venda.fileName.split('-')[2].split('.')[0]
+    const confirmacao = window.confirm(`Deseja reimprimir o cupom de venda & comissão #${cupomId}?`)
+    
+    if (confirmacao) {
+      try {
+        setSaleStatus('loading')
+        setErrorMessage('')
+
+        const receipt = formatReceipt(venda, comanda, cupomId);
+
+        console.log('Iniciando processo de impressão...');
+        await bluetoothService.initialize();
+        console.log('Bluetooth inicializado, enviando dados...');
+        await bluetoothService.sendData(receipt);
+        console.log('Dados enviados com sucesso!');
+        setSaleStatus('success');
+        setErrorMessage('');
+      } catch (printErr) {
+        console.error('Erro ao imprimir:', printErr);
+        const printError = printErr.message || 'Erro desconhecido na impressão';
+        setSaleStatus('warning');
+        
+        // Mensagens de erro mais específicas
+        if (printError.includes('not initialized') || printError.includes('not connected')) {
+          setErrorMessage(`Venda realizada com sucesso! Porém, a impressora não está conectada. Clique em "Configurar Impressora" para conectar.`);
+        } else if (printError.includes('No device')) {
+          setErrorMessage(`Venda realizada com sucesso! Porém, nenhuma impressora foi encontrada. Verifique se a impressora está ligada e pareada.`);
+        } else if (printError.includes('writing characteristic failed')) {
+          setErrorMessage(`Venda realizada com sucesso! Porém, falha na comunicação com a impressora. Tente reconectar a impressora.`);
+        } else {
+          setErrorMessage(`Venda realizada com sucesso! Porém, erro na impressão: ${printError}. Verifique a conexão da impressora.`);
+        }
+      }
+    }
+  }
 
   if (!isOpen) return null
 
@@ -47,6 +125,16 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
               </svg>
             </button>
           </div>
+
+          {errorMessage && (
+            <div className={`mb-4 p-3 rounded ${
+              saleStatus === 'success' ? 'bg-green-50 text-green-700' : 
+              saleStatus === 'warning' ? 'bg-yellow-50 text-yellow-700' : 
+              'bg-red-50 text-red-700'
+            }`}>
+              {errorMessage}
+            </div>
+          )}
 
           <div className="border-b pb-4 mb-4">
             <div className="grid grid-cols-2 gap-4">
@@ -87,9 +175,10 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
                   return (
                     <div 
                       key={index} 
-                      className={`border rounded-lg p-4 transition-colors ${
+                      className={`border rounded-lg p-4 transition-colors cursor-pointer hover:bg-gray-50 ${
                         isHighlighted ? 'bg-green-50 border-green-200 shadow-md' : ''
                       }`}
+                      onClick={() => handleVendaClick(venda)}
                     >
                       <div className="flex justify-between items-center mb-2">
                         <span className={`text-sm ${isHighlighted ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
@@ -102,7 +191,17 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
                       <div className="space-y-2">
                         {venda.items.map((item, itemIndex) => (
                           <div key={itemIndex} className="flex justify-between text-sm">
-                            <span>{item.descricao} x {item.quantidade}</span>
+                            <div>
+                              <span>{item.descricao} x {item.quantidade}</span>
+                              {item.atendentes && item.atendentes.length > 0 && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Atendentes: {item.atendentes.map(id => {
+                                    const atendente = atendentes.find(a => a.id === id)
+                                    return atendente ? atendente.Apelido : id
+                                  }).join(', ')}
+                                </div>
+                              )}
+                            </div>
                             <span className="text-gray-600">
                               R$ {Number((item.quantidade * item.preco) || 0).toFixed(2)}
                             </span>
