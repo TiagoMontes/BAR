@@ -431,12 +431,26 @@ app.get('/api/vendas/comanda/:id', async (req, res) => {
             atendenteIds.split(',').filter(id => id).map(Number) : 
             [];
 
+          // Se o produto não for encontrado, use valores padrão
+          if (!produto) {
+            console.warn(`Produto não encontrado: ID ${produtoId}`);
+            return {
+              produtoId: Number(produtoId),
+              descricao,
+              quantidade: Number(quantidade),
+              atendentes,
+              preco: 0,
+              comissao: 0
+            };
+          }
+
           return {
             produtoId: Number(produtoId),
             descricao,
             quantidade: Number(quantidade),
             atendentes,
-            preco: produto ? produto.Preco : 0
+            preco: produto.Preco || 0,
+            comissao: produto.Comissao || 0
           };
         });
 

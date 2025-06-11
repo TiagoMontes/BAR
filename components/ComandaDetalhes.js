@@ -3,6 +3,17 @@ import { getComanda } from '../lib/api'
 import { useAtendentes } from '../contexts/AtendentesContext'
 import { BluetoothService } from '../src/services/BluetoothService'
 
+// Comandos ESC/POS para impressoras RP
+const ESC = '\x1B';
+const DOUBLE_HEIGHT = `${ESC}!\x01`; // Double height
+const DOUBLE_WIDTH = `${ESC}!\x20`; // Double width
+const DOUBLE_SIZE = `${ESC}!\x21`; // Double height and width
+const NORMAL_SIZE = `${ESC}!\x00`; // Normal size
+const BOLD_ON = `${ESC}E\x01`; // Bold on
+const BOLD_OFF = `${ESC}E\x00`; // Bold off
+const ALIGN_CENTER = `${ESC}a\x01`; // Center alignment
+const ALIGN_LEFT = `${ESC}a\x00`; // Left alignment
+
 export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCupom }) {
   const [vendas, setVendas] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -23,9 +34,9 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
       minute: '2-digit'
     }).replace(',', '');
   
-    let receipt = `${dateStr}\n`;
+    let receipt = `${ALIGN_CENTER}${dateStr}\n`;
     receipt += `--------------------------------\n`;
-    receipt += `Cliente: ${comanda.Cliente}\n`;
+    receipt += `${ALIGN_LEFT}Cliente: ${comanda.Cliente}\n`;
     receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Código Descricao Produto\n`;
@@ -39,13 +50,54 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
       totalQuantity += item.quantidade;
       totalValue += itemTotal;
   
-      receipt += `# ${String(item.produtoId).padStart(3, '0')} ${item.descricao}\n`;
+      receipt += `# ${String(item.produtoId).padStart(3, '0')} `;
+      receipt += `${DOUBLE_SIZE}${BOLD_ON}${item.descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
       receipt += `## ${item.preco.toFixed(2)} ${String(item.quantidade).padStart(3, '0')} ${itemTotal.toFixed(2)}\n\n`;
     });
   
     receipt += `--------------------------------\n`;
-    receipt += `# Qtde. ${String(totalQuantity).padStart(3, '0')} Total: ${totalValue.toFixed(2)}\n\n`;
-    receipt += `TecBar\n\n\n\n`;
+    receipt += `# Qtde. ${String(totalQuantity).padStart(3, '0')} `;
+    receipt += `${DOUBLE_SIZE}${BOLD_ON}Total: ${totalValue.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n\n`;
+    receipt += `${ALIGN_CENTER}TecBar\n\n\n\n`;
+  
+    return receipt;
+  };
+
+  const formatAttendantReceipt = (attendente, commissionItems, comanda, cupomId) => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR', { 
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).replace(',', '');
+  
+    let receipt = `${ALIGN_CENTER}${dateStr}\n`;
+    receipt += `================================\n`;
+    receipt += `CUPOM DE COMISSAO\n`;
+    receipt += `================================\n`;
+    receipt += `${DOUBLE_SIZE}${BOLD_ON}Atendente: ${attendente.Apelido} - ${attendente.id}${BOLD_OFF}${NORMAL_SIZE}\n`;
+    receipt += `${ALIGN_LEFT}Cliente: ${comanda.Cliente}\n`;
+    receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
+    receipt += `--------------------------------\n`;
+    receipt += `Produtos com Comissao:\n\n`;
+  
+    let totalCommission = 0;
+  
+    commissionItems.forEach(({ item, produto, commissionPerAttendant }) => {
+      const itemCommissionTotal = commissionPerAttendant * item.quantidade;
+      totalCommission += itemCommissionTotal;
+  
+      receipt += `# ${String(produto.Id).padStart(3, '0')} ${produto.Descricao}\n`;
+      receipt += `## Qtde: ${item.quantidade} - Comissao: R$ ${commissionPerAttendant.toFixed(2)}\n`;
+      receipt += `## Total: R$ ${itemCommissionTotal.toFixed(2)}\n\n`;
+    });
+  
+    receipt += `--------------------------------\n`;
+    receipt += `${DOUBLE_SIZE}${BOLD_ON}COMISSAO: R$ ${totalCommission.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n`;
+    receipt += `================================\n`;
+    receipt += `${ALIGN_CENTER}TecBar\n\n\n\n`;
   
     return receipt;
   };
@@ -80,13 +132,40 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
         setSaleStatus('loading')
         setErrorMessage('')
 
+        // Imprimir cupom de venda
         const receipt = formatReceipt(venda, comanda, cupomId);
-
-        console.log('Iniciando processo de impressão...');
         await bluetoothService.initialize();
-        console.log('Bluetooth inicializado, enviando dados...');
         await bluetoothService.sendData(receipt);
-        console.log('Dados enviados com sucesso!');
+
+        // Imprimir cupons de comissão para cada atendente
+        const atendentesComComissao = new Map();
+        
+        venda.items.forEach(item => {
+          if (item.comissao > 0 && item.atendentes && item.atendentes.length > 0) {
+            const comissaoPorAtendente = item.comissao / item.atendentes.length;
+            
+            item.atendentes.forEach(atendenteId => {
+              if (!atendentesComComissao.has(atendenteId)) {
+                atendentesComComissao.set(atendenteId, []);
+              }
+              atendentesComComissao.get(atendenteId).push({
+                item,
+                produto: { Id: item.produtoId, Descricao: item.descricao },
+                commissionPerAttendant: comissaoPorAtendente // Comissão dividida igualmente entre os atendentes
+              });
+            });
+          }
+        });
+
+        // Imprimir cupom de comissão para cada atendente
+        for (const [atendenteId, commissionItems] of atendentesComComissao) {
+          const atendente = atendentes.find(a => a.id === atendenteId);
+          if (atendente) {
+            const attendantReceipt = formatAttendantReceipt(atendente, commissionItems, comanda, cupomId);
+            await bluetoothService.sendData(attendantReceipt);
+          }
+        }
+
         setSaleStatus('success');
         setErrorMessage('');
       } catch (printErr) {
@@ -94,7 +173,6 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
         const printError = printErr.message || 'Erro desconhecido na impressão';
         setSaleStatus('warning');
         
-        // Mensagens de erro mais específicas
         if (printError.includes('not initialized') || printError.includes('not connected')) {
           setErrorMessage(`Venda realizada com sucesso! Porém, a impressora não está conectada. Clique em "Configurar Impressora" para conectar.`);
         } else if (printError.includes('No device')) {

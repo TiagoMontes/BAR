@@ -9,6 +9,17 @@ import PrinterModal from './PrinterModal'
 import Link from 'next/link'
 import { BluetoothService } from '../src/services/BluetoothService'
 
+// Comandos ESC/POS para impressoras RP
+const ESC = '\x1B';
+const DOUBLE_HEIGHT = `${ESC}!\x01`; // Double height
+const DOUBLE_WIDTH = `${ESC}!\x20`; // Double width
+const DOUBLE_SIZE = `${ESC}!\x21`; // Double height and width
+const NORMAL_SIZE = `${ESC}!\x00`; // Normal size
+const BOLD_ON = `${ESC}E\x01`; // Bold on
+const BOLD_OFF = `${ESC}E\x00`; // Bold off
+const ALIGN_CENTER = `${ESC}a\x01`; // Center alignment
+const ALIGN_LEFT = `${ESC}a\x00`; // Left alignment
+
 // Novo componente modal para cupom de atendente
 const AttendantReceiptModal = ({ isOpen, attendant, commissionValue, receipt, onPrint, onClose }) => {
   if (!isOpen) return null;
@@ -224,9 +235,9 @@ export default function VendasInterface({ user }) {
       minute: '2-digit'
     }).replace(',', '');
 
-    let receipt = `${dateStr}\n`;
+    let receipt = `${ALIGN_CENTER}${dateStr}\n`;
     receipt += `--------------------------------\n`;
-    receipt += `Cliente: ${comanda.Cliente}\n`;
+    receipt += `${ALIGN_LEFT}Cliente: ${comanda.Cliente}\n`;
     receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Código Descricao Produto\n`;
@@ -242,14 +253,14 @@ export default function VendasInterface({ user }) {
         totalQuantity += item.quantidade;
         totalValue += itemTotal;
 
-        receipt += `# ${String(produto.Id).padStart(3, '0')} ${produto.Descricao}\n`;
-        receipt += `## ${produto.Preco.toFixed(2)} ${String(item.quantidade).padStart(3, '0')} ${itemTotal.toFixed(2)}\n\n`;
+        receipt += `${DOUBLE_SIZE}${BOLD_ON}${String(produto.Id).padStart(3, '0')} ${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
+        receipt += `${produto.Preco.toFixed(2)} ${String(item.quantidade).padStart(3, '0')} ${itemTotal.toFixed(2)}\n\n`;
       }
     });
 
     receipt += `--------------------------------\n`;
-    receipt += `# Qtde. ${String(totalQuantity).padStart(3, '0')} Total: ${totalValue.toFixed(2)}\n\n`;
-    receipt += `TecBar\n\n\n\n`;
+    receipt += `${DOUBLE_SIZE}${BOLD_ON}Qtde.${String(totalQuantity).padStart(3, '0')} \nTotal: ${totalValue.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n\n`;
+    receipt += `${ALIGN_CENTER}TecBar\n\n\n\n`;
 
     return receipt;
   };
@@ -265,12 +276,12 @@ export default function VendasInterface({ user }) {
       minute: '2-digit'
     }).replace(',', '');
 
-    let receipt = `${dateStr}\n`;
+    let receipt = `${ALIGN_CENTER}${dateStr}\n`;
     receipt += `================================\n`;
     receipt += `CUPOM DE COMISSAO\n`;
     receipt += `================================\n`;
-    receipt += `Atendente: ${attendant.Apelido} - ${attendant.id}\n`;
-    receipt += `Cliente: ${comanda.Cliente}\n`;
+    receipt += `${DOUBLE_SIZE}${BOLD_ON}Atendente: ${attendant.Apelido} - ${attendant.id}${BOLD_OFF}${NORMAL_SIZE}\n`;
+    receipt += `${ALIGN_LEFT}Cliente: ${comanda.Cliente}\n`;
     receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Produtos com Comissao:\n\n`;
@@ -281,15 +292,15 @@ export default function VendasInterface({ user }) {
       const itemCommissionTotal = commissionPerAttendant * item.quantidade;
       totalCommission += itemCommissionTotal;
 
-      receipt += `# ${String(produto.Id).padStart(3, '0')} ${produto.Descricao}\n`;
+      receipt += `# ${DOUBLE_SIZE}${BOLD_ON}${String(produto.Id).padStart(3, '0')} ${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
       receipt += `## Qtde: ${item.quantidade} - Comissao: R$ ${commissionPerAttendant.toFixed(2)}\n`;
       receipt += `## Total: R$ ${itemCommissionTotal.toFixed(2)}\n\n`;
     });
 
     receipt += `--------------------------------\n`;
-    receipt += `TOTAL COMISSAO: R$ ${totalCommission.toFixed(2)}\n`;
+    receipt += `${DOUBLE_SIZE}${BOLD_ON}COMISSAO:\nR$ ${totalCommission.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n`;
     receipt += `================================\n`;
-    receipt += `TecBar\n\n\n\n`;
+    receipt += `${ALIGN_CENTER}TecBar\n\n\n\n`;
 
     return receipt;
   };
@@ -311,17 +322,18 @@ export default function VendasInterface({ user }) {
     cart.forEach(item => {
       const produto = produtos.find(p => p.Id === item.produtoId);
       if (produto && produto.Comissao > 0) {
-        const commissionPerAttendant = produto.Comissao / selectedAtendentes.length;
+        const atendentes = item.atendentes || [];
+        const comissaoPorAtendente = produto.Comissao / atendentes.length;
         
-        selectedAtendentes.forEach(attendant => {
-          if (attendantCommissions[attendant.id]) {
-            attendantCommissions[attendant.id].items.push({
+        atendentes.forEach(atendenteId => {
+          if (attendantCommissions[atendenteId]) {
+            attendantCommissions[atendenteId].items.push({
               item,
               produto,
-              commissionPerAttendant
+              commissionPerAttendant: comissaoPorAtendente
             });
-            attendantCommissions[attendant.id].totalCommission += 
-              commissionPerAttendant * item.quantidade;
+            attendantCommissions[atendenteId].totalCommission += 
+              comissaoPorAtendente * item.quantidade;
           }
         });
       }
