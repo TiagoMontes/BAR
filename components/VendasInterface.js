@@ -164,8 +164,8 @@ export default function VendasInterface({ user }) {
 
     let receipt = `${dateStr}\n`;
     receipt += `--------------------------------\n`;
-    receipt += `Cli.: ${comanda.Idcomanda} - ${comanda.Cliente}\n`;
-    receipt += `Comanda ${comanda.Idcomanda} Id Venda: ${cupomId}\n`;
+    receipt += `Cliente: ${comanda.Cliente}\n`;
+    receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Código Descricao Produto\n`;
     receipt += `Vr Unit. Qtde Vr Total\n\n`;
@@ -432,7 +432,7 @@ export default function VendasInterface({ user }) {
           </div>
 
         {/* Grid de Produtos */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 pb-32">
           <ProductGrid
             produtos={produtos}
             onAddToCart={addToCart}
