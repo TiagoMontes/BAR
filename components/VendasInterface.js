@@ -578,7 +578,7 @@ export default function VendasInterface({ user }) {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-32 lg:mb-0">
-        <div className="rounded-lg shadow lg:hidden">
+        <div className="rounded-lg lg:hidden flex flex-col gap-4">
           <Cart
             cart={cart}
             produtos={produtos}
@@ -588,6 +588,16 @@ export default function VendasInterface({ user }) {
             isProcessingSale={isProcessingSale}
             selectedComanda={selectedComanda}
           />
+          {hasCommissionProducts() && (
+            <div className="rounded-lg shadow lg:hidden">
+              <AttendantSelector
+                atendentes={atendentes}
+                selectedAtendentes={selectedAtendentes}
+                onSelectAttendant={handleSelectAttendant}
+                onRemoveAttendant={handleRemoveAttendant}
+              />
+            </div>
+          )}
         </div>
 
         {/* Grid de Produtos - Lado Esquerdo */}
@@ -613,7 +623,7 @@ export default function VendasInterface({ user }) {
           
           {/* Seleção de Atendentes */}
           {hasCommissionProducts() && (
-            <div className="rounded-lg shadow">
+            <div className="rounded-lg shadow hidden lg:block">
               <AttendantSelector
                 atendentes={atendentes}
                 selectedAtendentes={selectedAtendentes}
@@ -638,7 +648,7 @@ export default function VendasInterface({ user }) {
 
         
           <button
-            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden lg:block"
             disabled={cart.length === 0 || isProcessingSale}
             onClick={handleSale}
           >
