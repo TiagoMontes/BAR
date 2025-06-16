@@ -145,9 +145,39 @@ app.get('/api/operadores', async (req, res) => {
 
 app.get('/api/produtos', async (req, res) => {
   try {
-    const data = await fs.readFile(path.join(__dirname, '../data/produtos.json'), 'utf8');
-    const produtos = JSON.parse(data);
-    res.json(produtos);
+    // Lê os produtos
+    const produtosData = await fs.readFile(path.join(__dirname, '../data/produtos.json'), 'utf8');
+    const produtos = JSON.parse(produtosData);
+
+    // Lê o top12
+    const top12Data = await fs.readFile(path.join(__dirname, '../data/top12.json'), 'utf8');
+    const top12 = JSON.parse(top12Data);
+
+    // Cria um mapa de posição para cada produto do top12
+    const top12Map = new Map(top12.map(item => [item.Id, item.Posicao]));
+
+    // Ordena os produtos
+    const produtosOrdenados = [...produtos].sort((a, b) => {
+      const posicaoA = top12Map.get(a.Id);
+      const posicaoB = top12Map.get(b.Id);
+
+      // Se ambos estão no top12, ordena pela posição
+      if (posicaoA !== undefined && posicaoB !== undefined) {
+        return posicaoA - posicaoB;
+      }
+      // Se apenas A está no top12, A vem primeiro
+      if (posicaoA !== undefined) {
+        return -1;
+      }
+      // Se apenas B está no top12, B vem primeiro
+      if (posicaoB !== undefined) {
+        return 1;
+      }
+      // Se nenhum está no top12, mantém a ordem original
+      return 0;
+    });
+
+    res.json(produtosOrdenados);
   } catch (error) {
     console.error('Erro ao ler produtos:', error);
     res.status(500).json({ 

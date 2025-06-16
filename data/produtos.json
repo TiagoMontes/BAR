@@ -1,92 +1,164 @@
 [
-    {
-      "Id": 1,
-      "Descricao": "RED LABEL LT",
-      "Preco": 250.00,
-      "Preco Atendente": 250.00,
-      "Comissao": 30.00,
-      "Id setor": 1,
-      "Setor": "bebidas"
-    },
-    {
-      "Id": 2,
-      "Descricao": "BLACK LABEL LT",
-      "Preco": 350.00,
-      "Preco Atendente": 350.00,
-      "Comissao": 40.00,
-      "Id setor": 1,
-      "Setor": "bebidas"
-    },
-    {
-      "Id": 3,
-      "Descricao": "OLD PAR LT",
-      "Preco": 200.00,
-      "Preco Atendente": 200.00,
-      "Comissao": 20.00,
-      "Id setor": 1,
-      "Setor": "bebidas"
-    },
-    {
-      "Id": 4,
-      "Descricao": "BALLANTINE'S LT",
-      "Preco": 400.00,
-      "Preco Atendente": 400.00,
-      "Comissao": 0.00,
-      "Id setor": 1,
-      "Setor": "bebidas"
-    },
-    {
-      "Id": 5,
-      "Descricao": "CHIVAS REGAL LT",
-      "Preco": 350.00,
-      "Preco Atendente": 350.00,
-      "Comissao": 30.00,
-      "Id setor": 1,
-      "Setor": "bebidas"
-    },
-    {
-      "Id": 6,
-      "Descricao": "JACK DANIEL'S",
-      "Preco": 250.00,
-      "Preco Atendente": 250.00,
-      "Comissao": 0.00,
-      "Id setor": 1,
-      "Setor": "bebidas"
-    },
-    {
-      "Id": 7,
-      "Descricao": "ABSOLUT LT",
-      "Preco": 190.00,
-      "Preco Atendente": 190.00,
-      "Comissao": 20.00,
-      "Id setor": 1,
-      "Setor": "bebidas"
-    },
-    {
-      "Id": 8,
-      "Descricao": "GIM LT",
-      "Preco": 160.00,
-      "Preco Atendente": 160.00,
-      "Comissao": 20.00,
-      "Id setor": 1,
-      "Setor": "bebidas"
-    },
-    {
-      "Id": 9,
-      "Descricao": "WHISKY 12 ANOS",
-      "Preco": 25.00,
-      "Preco Atendente": 20.00,
-      "Comissao": 0.00,
-      "Id setor": 1,
-      "Setor": "bebidas"
-    },
-    {
-      "Id": 10,
-      "Descricao": "WHISKY 8 ANOS",
-      "Preco": 20.00,
-      "Preco Atendente": 15.00,
-      "Comissao": 0.00,
-      "Id setor": 1,
-      "Setor": "bebidas"
-    }
-  ]
+  {
+    "Id": 1,
+    "Descricao": "RED LABEL LT",
+    "Preco": 250.0,
+    "Preco Atendente": 250.0,
+    "Comissao": 30.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 2,
+    "Descricao": "AGUA",
+    "Preco": 350.0,
+    "Preco Atendente": 350.0,
+    "Comissao": 40.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 3,
+    "Descricao": "OLD PAR LT",
+    "Preco": 200.0,
+    "Preco Atendente": 200.0,
+    "Comissao": 20.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 4,
+    "Descricao": "BALLANTINE'S LT",
+    "Preco": 400.0,
+    "Preco Atendente": 400.0,
+    "Comissao": 0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 5,
+    "Descricao": "CHIVAS REGAL LT",
+    "Preco": 350.0,
+    "Preco Atendente": 350.0,
+    "Comissao": 30.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 6,
+    "Descricao": "REFRIGERANTE",
+    "Preco": 250.0,
+    "Preco Atendente": 250.0,
+    "Comissao": 0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 7,
+    "Descricao": "ABSOLUT LT",
+    "Preco": 190.0,
+    "Preco Atendente": 190.0,
+    "Comissao": 20.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 8,
+    "Descricao": "ENERGETICO",
+    "Preco": 160.0,
+    "Preco Atendente": 160.0,
+    "Comissao": 20.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 9,
+    "Descricao": "WHISKY 12 ANOS",
+    "Preco": 25.0,
+    "Preco Atendente": 20.0,
+    "Comissao": 0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 10,
+    "Descricao": "WHISKY 8 ANOS",
+    "Preco": 20.0,
+    "Preco Atendente": 15.0,
+    "Comissao": 0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 11,
+    "Descricao": "VODKA ABSOLUT DS",
+    "Preco": 30.0,
+    "Preco Atendente": 15.0,
+    "Comissao": 0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 12,
+    "Descricao": "GIM DS",
+    "Preco": 20.0,
+    "Preco Atendente": 20.0,
+    "Comissao": 0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 13,
+    "Descricao": "AMARULA DS",
+    "Preco": 25.0,
+    "Preco Atendente": 25.0,
+    "Comissao": 5.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 14,
+    "Descricao": "AMARULA LT",
+    "Preco": 250.0,
+    "Preco Atendente": 250.0,
+    "Comissao": 20.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 15,
+    "Descricao": "TEQUILA LT",
+    "Preco": 300.0,
+    "Preco Atendente": 300.0,
+    "Comissao": 25.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 16,
+    "Descricao": "TEQUILA DS",
+    "Preco": 25.0,
+    "Preco Atendente": 25.0,
+    "Comissao": 5.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 17,
+    "Descricao": "CACHA�A DS",
+    "Preco": 15.0,
+    "Preco Atendente": 15.0,
+    "Comissao": 0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  },
+  {
+    "Id": 18,
+    "Descricao": "CAIMPINHA CACHA�A",
+    "Preco": 35.0,
+    "Preco Atendente": 35.0,
+    "Comissao": 5.0,
+    "Id setor": 1,
+    "Setor": "bebidas"
+  }
+]
