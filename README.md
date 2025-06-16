@@ -1,96 +1,85 @@
-# BAR - Sistema de Vendas
+# 📱 Documentação de Uso do Projeto
 
-Sistema de vendas com suporte a comandas, produtos, atendentes e impressão de cupons.
+## 🔧 Requisitos
 
-## Requisitos
+- Node.js instalado (versão 18 ou superior recomendada)
+- Git instalado
+- Dispositivo Android com Bluetooth ativado
+- Impressora Bluetooth Low Energy (BLE) ligada
+- Conexão com rede intranet (Wi-Fi)
 
-- Node.js (versão 14 ou superior)
-- npm (gerenciador de pacotes do Node.js)
-- Android Studio (para desenvolvimento Android)
-- JDK (Java Development Kit)
+---
 
-## Instalação
+## 🚀 Passo a Passo para Instalação e Uso
 
-1. Clone o repositório:
+### 1. Clonar o Projeto
 
 ```bash
-git clone [URL_DO_REPOSITÓRIO]
-cd BAR
+git clone <URL_DO_REPOSITORIO>
+cd <nome-da-pasta-do-projeto>
 ```
 
-2. Instale as dependências:
+### 2. Instalar Dependências
 
 ```bash
 npm install
 ```
 
-## Desenvolvimento
-
-### Construir APK para Desenvolvimento
-
-Para construir o APK de desenvolvimento:
-
-```bash
-npm run build:dev:apk
-```
-
-Este comando irá:
-
-1. Gerar a configuração necessária
-2. Construir o projeto Next.js
-3. Sincronizar com o Capacitor
-4. Gerar o APK de debug
-
-O APK será gerado em `apk/bar.apk`
-
-### Executar em Modo de Desenvolvimento
-
-Para executar o projeto em modo de desenvolvimento (servidor + frontend):
-
-```bash
-npm run dev:all
-```
-
-Este comando irá:
-
-1. Iniciar o servidor Express na porta 3001
-2. Iniciar o servidor de desenvolvimento Next.js na porta 3000
-
-## Estrutura do Projeto
-
-- `/pages` - Páginas da aplicação Next.js
-- `/components` - Componentes React reutilizáveis
-- `/server` - Servidor Express
-- `/data` - Arquivos JSON de dados
-- `/android` - Projeto Android nativo
-- `/scripts` - Scripts de configuração e build
-
-## Configuração
-
-O projeto usa um arquivo de configuração gerado automaticamente. Para gerar a configuração:
+### 3. Gerar APK de Instalação
 
 ```bash
 npm run generate:config
 ```
 
-## Scripts Disponíveis
+> Isso irá gerar o arquivo `bar.apk` em `./apk`.
 
-- `npm run dev` - Inicia o servidor de desenvolvimento Next.js
-- `npm run build` - Constrói o projeto para produção
-- `npm run start` - Inicia o servidor de produção
-- `npm run build:dev:apk` - Constrói o APK de desenvolvimento
-- `npm run dev:all` - Inicia o servidor e o frontend em modo de desenvolvimento
-- `npm run cap:sync` - Sincroniza as alterações com o projeto Android
-- `npm run cap:open:android` - Abre o projeto no Android Studio
+### 4. Transferir o APK para o Dispositivo
 
-## Notas Importantes
+- Envie o arquivo `apk/bar.apk` para o Google Drive.
+- Acesse o Google Drive no dispositivo Android.
+- Baixe e instale o APK (permitir instalações externas, se necessário).
 
-1. Certifique-se de que o Android Studio está configurado corretamente
-2. O APK de desenvolvimento é assinado com uma chave de debug
-3. Para produção, será necessário configurar uma chave de assinatura apropriada
-4. O servidor Express roda na porta 3001 por padrão
-5. O frontend Next.js roda na porta 3000 por padrão
+### 5. Conectar Todos os Dispositivos à Mesma Rede
 
-## Suporte
+- O **dispositivo Android** e o **computador com o servidor** devem estar conectados na mesma rede Wi-Fi (intranet).
 
-Para problemas ou dúvidas, abra uma issue no repositório.
+### 6. Iniciar o Projeto
+
+```bash
+npm run dev:all
+```
+
+> Isso inicia o frontend Next.js e o backend Express juntos.
+
+### 7. Acessar a Aplicação no Dispositivo
+
+- No navegador do Android ou WebView:
+  - Acesse o IP local da máquina onde o projeto está rodando.
+  - Exemplo: `http://192.168.0.10:3000` (substitua pelo IP real da máquina).
+
+---
+
+## 🖨️ Configuração da Impressora Bluetooth
+
+1. Certifique-se de que a impressora esteja **ligada**.
+2. Certifique-se de que o Bluetooth do dispositivo Android esteja **ativado**.
+3. Abra o app e clique em **"Procurar dispositivo"**.
+4. Selecione sua **impressora BLE**.
+5. Após conexão, **imprima um teste** para verificar o funcionamento.
+
+---
+
+## 📝 Comandos Importantes
+
+| Comando                  | Descrição                                                    |
+|--------------------------|--------------------------------------------------------------|
+| `npm run dev`            | Inicia apenas o frontend Next.js                             |
+| `npm run start`          | Inicia aplicação já compilada                                |
+| `npm run generate:config`| Gera o arquivo de configuração antes de buildar              |
+| `npm run build:dev:apk`  | Gera o APK para testes com config atual                      |
+| `npm run dev:all`        | Inicia o frontend e o backend Express simultaneamente        |
+| `npm run build:apk`      | Gera o APK em `/apk/bar.apk`                                 |
+
+---
+
+> Para dúvidas ou suporte técnico, entre em contato com o desenvolvedor responsável.
