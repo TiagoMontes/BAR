@@ -28,7 +28,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
   })
 
   // Calculate pagination
-  const productsPerPage = isMobile ? 6 : 9
+  const productsPerPage = isMobile ? 6 : 12
   const totalPages = Math.ceil(filteredProdutos.length / productsPerPage)
   const startIndex = (currentPage - 1) * productsPerPage
   const endIndex = startIndex + productsPerPage

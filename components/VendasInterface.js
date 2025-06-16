@@ -577,20 +577,43 @@ export default function VendasInterface({ user }) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Seleção de Comanda */}
-        <div className="lg:col-span-1">
-        <ComandaSelector
-          comandas={comandas}
-          selectedComanda={selectedComanda}
-          onComandaSelect={setSelectedComanda}
-          onShowDetails={setShowComandaDetalhes}
-          onCloseComanda={handleCloseComanda}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-32 lg:mb-0">
+        <div className="rounded-lg shadow lg:hidden">
+          <Cart
+            cart={cart}
+            produtos={produtos}
+            onRemoveFromCart={removeFromCart}
+            onUpdateQuantity={updateQuantity}
+            onSale={handleSale}
+            isProcessingSale={isProcessingSale}
+            selectedComanda={selectedComanda}
+          />
+        </div>
+
+        {/* Grid de Produtos - Lado Esquerdo */}
+        <div className="lg:col-span-7">
+          <ProductGrid
+            produtos={produtos}
+            onAddToCart={addToCart}
+          />
+        </div>
+
+        {/* Lado Direito - Comanda, Atendentes e Carrinho */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Seleção de Comanda */}
+          <div className="rounded-lg shadow">
+            <ComandaSelector
+              comandas={comandas}
+              selectedComanda={selectedComanda}
+              onComandaSelect={setSelectedComanda}
+              onShowDetails={setShowComandaDetalhes}
+              onCloseComanda={handleCloseComanda}
+            />
+          </div>
           
           {/* Seleção de Atendentes */}
           {hasCommissionProducts() && (
-            <div className="mt-6">
+            <div className="rounded-lg shadow">
               <AttendantSelector
                 atendentes={atendentes}
                 selectedAtendentes={selectedAtendentes}
@@ -599,9 +622,9 @@ export default function VendasInterface({ user }) {
               />
             </div>
           )}
-        </div>
 
-        <div className="lg:col-span-2">
+          {/* Carrinho */}
+          <div className="rounded-lg shadow hidden lg:block">
             <Cart
               cart={cart}
               produtos={produtos}
@@ -613,12 +636,15 @@ export default function VendasInterface({ user }) {
             />
           </div>
 
-        {/* Grid de Produtos */}
-        <div className="lg:col-span-1 pb-32">
-          <ProductGrid
-            produtos={produtos}
-            onAddToCart={addToCart}
-          />
+        
+          <button
+            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={cart.length === 0 || isProcessingSale}
+            onClick={handleSale}
+          >
+            {isProcessingSale ? 'Processando...' : 'Finalizar Venda'}
+          </button>
+            
         </div>
       </div>
 

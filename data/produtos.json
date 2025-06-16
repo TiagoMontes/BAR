@@ -1,38 +1,92 @@
 [
-  {
-      "Id":1, 
-      "Descricao": "COCA COLA LT", 
-      "Preco": 9.00, 
-      "Preco Atendente": 7.00, 
-      "Comissao":0, 
-      "Id setor":1, 
+    {
+      "Id": 1,
+      "Descricao": "RED LABEL LT",
+      "Preco": 250.00,
+      "Preco Atendente": 250.00,
+      "Comissao": 30.00,
+      "Id setor": 1,
       "Setor": "bebidas"
-  },
-  {
-      "Id":2, 
-      "Descricao": "RED LABEL DS", 
-      "Preco": 50.00, 
-      "Preco Atendente": 50.00, 
-      "Comissao":10.00, 
-      "Id setor":1, 
+    },
+    {
+      "Id": 2,
+      "Descricao": "BLACK LABEL LT",
+      "Preco": 350.00,
+      "Preco Atendente": 350.00,
+      "Comissao": 40.00,
+      "Id setor": 1,
       "Setor": "bebidas"
-  },
-  {
-      "Id":3, 
-      "Descricao": "RED LABEL LT", 
-      "Preco": 250.00, 
-      "Preco Atendente": 250.00, 
-      "Comissao":30.00, 
-      "Id setor":1, 
+    },
+    {
+      "Id": 3,
+      "Descricao": "OLD PAR LT",
+      "Preco": 200.00,
+      "Preco Atendente": 200.00,
+      "Comissao": 20.00,
+      "Id setor": 1,
       "Setor": "bebidas"
-  },
-  {
-      "Id":4, 
-      "Descricao": "X SALADA", 
-      "Preco": 25.00, 
-      "Preco Atendente": 25.00, 
-      "Comissao":5.00, 
-      "Id setor":2, 
-      "Setor": "COZINHA"
-  }
-]
+    },
+    {
+      "Id": 4,
+      "Descricao": "BALLANTINE'S LT",
+      "Preco": 400.00,
+      "Preco Atendente": 400.00,
+      "Comissao": 0.00,
+      "Id setor": 1,
+      "Setor": "bebidas"
+    },
+    {
+      "Id": 5,
+      "Descricao": "CHIVAS REGAL LT",
+      "Preco": 350.00,
+      "Preco Atendente": 350.00,
+      "Comissao": 30.00,
+      "Id setor": 1,
+      "Setor": "bebidas"
+    },
+    {
+      "Id": 6,
+      "Descricao": "JACK DANIEL'S",
+      "Preco": 250.00,
+      "Preco Atendente": 250.00,
+      "Comissao": 0.00,
+      "Id setor": 1,
+      "Setor": "bebidas"
+    },
+    {
+      "Id": 7,
+      "Descricao": "ABSOLUT LT",
+      "Preco": 190.00,
+      "Preco Atendente": 190.00,
+      "Comissao": 20.00,
+      "Id setor": 1,
+      "Setor": "bebidas"
+    },
+    {
+      "Id": 8,
+      "Descricao": "GIM LT",
+      "Preco": 160.00,
+      "Preco Atendente": 160.00,
+      "Comissao": 20.00,
+      "Id setor": 1,
+      "Setor": "bebidas"
+    },
+    {
+      "Id": 9,
+      "Descricao": "WHISKY 12 ANOS",
+      "Preco": 25.00,
+      "Preco Atendente": 20.00,
+      "Comissao": 0.00,
+      "Id setor": 1,
+      "Setor": "bebidas"
+    },
+    {
+      "Id": 10,
+      "Descricao": "WHISKY 8 ANOS",
+      "Preco": 20.00,
+      "Preco Atendente": 15.00,
+      "Comissao": 0.00,
+      "Id setor": 1,
+      "Setor": "bebidas"
+    }
+  ]

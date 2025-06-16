@@ -65,15 +65,6 @@ export default function Cart({ cart, produtos, onUpdateQuantity, onRemoveItem, o
         </div>
       )}
 
-      {/* Checkout Button */}
-      <button
-        className="hidden lg:block w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={cart.length === 0 || isProcessingSale}
-        onClick={onCheckout}
-      >
-        {isProcessingSale ? 'Processando...' : 'Finalizar Venda'}
-      </button>
-
       {/* Sale Status Message */}
       {saleStatus === 'success' && (
         <div className="mt-4 text-center">

@@ -2,14 +2,14 @@
   {
     "Idcomanda": 6,
     "Cliente": "TIAGO MONTES",
-    "saldo": 6159,
+    "saldo": 0,
     "Entrada": "31/05/2025, 19:03:20",
     "status": 0
   },
   {
     "Idcomanda": 7,
     "Cliente": "SARAH",
-    "saldo": 700,
+    "saldo": 1275,
     "Entrada": "01/06/2025, 09:52:58",
     "status": 0
   },
