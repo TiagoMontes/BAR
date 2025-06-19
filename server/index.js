@@ -37,7 +37,11 @@ async function writeJsonFile(filePath, data) {
 
 // API Routes
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    message: 'Server is running'
+  })
 });
 
 // Auth routes

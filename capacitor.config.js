@@ -1,41 +1,40 @@
 const config = {
-  appId: 'com.rivaldo.bar',
-  appName: 'BAR',
-  webDir: 'out',
-  bundledWebRuntime: false,
-  server: {
-      url: 'http://192.168.100.179:3000',
-      cleartext: true
-    },
-  plugins: {
-    BluetoothLe: {
-      displayStrings: {
-        scanning: 'Scanning for devices...',
-        cancel: 'Cancel',
-        availableDevices: 'Available devices',
-        noDeviceFound: 'No device found'
+  "appId": "com.rivaldo.bar",
+  "appName": "BAR",
+  "webDir": "out",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "http://192.168.100.183:3000",
+    "cleartext": true
+  },
+  "plugins": {
+    "BluetoothLe": {
+      "displayStrings": {
+        "scanning": "Scanning for devices...",
+        "cancel": "Cancel",
+        "availableDevices": "Available devices",
+        "noDeviceFound": "No device found"
       },
-      services: ['FFE0'],
-      optionalServices: ['FFE0']
+      "services": [
+        "FFE0"
+      ],
+      "optionalServices": [
+        "FFE0"
+      ]
     }
   },
-  android: {
-    permissions: [
-      'android.permission.BLUETOOTH',
-      'android.permission.BLUETOOTH_ADMIN',
-      'android.permission.BLUETOOTH_SCAN',
-      'android.permission.BLUETOOTH_CONNECT',
-      'android.permission.ACCESS_FINE_LOCATION',
-      'android.permission.ACCESS_COARSE_LOCATION'
+  "android": {
+    "permissions": [
+      "android.permission.BLUETOOTH",
+      "android.permission.BLUETOOTH_ADMIN",
+      "android.permission.BLUETOOTH_SCAN",
+      "android.permission.BLUETOOTH_CONNECT",
+      "android.permission.ACCESS_FINE_LOCATION",
+      "android.permission.ACCESS_COARSE_LOCATION"
     ],
-    buildOptions: {
-      keystorePath: undefined,
-      keystorePassword: undefined,
-      keystoreAlias: undefined,
-      keystoreAliasPassword: undefined
-    },
-    allowMixedContent: true
+    "buildOptions": {},
+    "allowMixedContent": true
   }
 };
 
-module.exports = config; 
+module.exports = config;

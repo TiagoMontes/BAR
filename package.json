@@ -15,7 +15,8 @@
     "build:android": "npm run build && npx cap sync android && npx cap open android",
     "build:apk": "cd android && ./gradlew assembleDebug && cd .. && mkdir -p apk && mv android/app/build/outputs/apk/debug/app-debug.apk apk/bar.apk",
     "generate:config": "node scripts/generateConfig.js",
-    "build:dev:apk": "npm run generate:config && npm run build && npm run cap:sync && npm run build:apk",
+    "set:config": "node scripts/setConfig.js",
+    "build:dev:apk": "npm run build && npm run cap:sync && npm run build:apk",
     "dev:all": "concurrently \"npm run dev\" \"node server/index.js\""
   },
   "dependencies": {
