@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getComanda } from '../lib/api'
 import { useAtendentes } from '../contexts/AtendentesContext'
-import { BluetoothService } from '../src/services/BluetoothService'
+import { BluetoothService } from '../services/BluetoothService'
 
 // Comandos ESC/POS para impressoras RP
 const ESC = '\x1B';

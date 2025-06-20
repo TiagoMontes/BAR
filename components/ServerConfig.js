@@ -14,7 +14,7 @@ export default function ServerConfig() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 mb-6">
+    <div className="w-full p-4 max-w-md mx-auto bg-white rounded-lg border border-gray-200 ">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">Configuração do Servidor</h2>
         <div className="flex space-x-2">

@@ -81,7 +81,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
           currentProducts.map(produto => (
             <div
               key={produto.Id}
-              className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between"
+              className="bg-white p-4 rounded-lg border border-gray-300 hover:border-gray-500 transition-colors cursor-pointer flex flex-col justify-between"
               onClick={() => onAddToCart(produto)}
             >
               <h3 className="font-semibold text-sm truncate">{produto.Descricao}</h3>

@@ -9,7 +9,7 @@ export default function Cart({ cart, produtos, onUpdateQuantity, onRemoveItem, o
   return (
     <div className="space-y-4">
       {/* Cart */}
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="bg-white p-4 rounded-lg border border-gray-300">
         <h2 className="text-lg font-semibold mb-2">Carrinho</h2>
         {cart.length === 0 ? (
           <p className="text-gray-500">Carrinho vazio</p>

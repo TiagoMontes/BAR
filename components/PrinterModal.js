@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BluetoothPrinter } from '../src/components/BluetoothPrinter';
+import { BluetoothPrinter } from './BluetoothPrinter';
 
 export default function PrinterModal({ isOpen, onClose }) {
   if (!isOpen) return null;

@@ -12,7 +12,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
   )
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
+    <div className="bg-white p-4 rounded-lg border border-gray-300">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-lg font-semibold">Comanda</h2>
         <Link

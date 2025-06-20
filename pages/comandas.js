@@ -74,13 +74,13 @@ export default function Comandas() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-      <button
-            onClick={() => router.push('/vendas')}
-            className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
-          >
-            Vendas
-          </button>
-          <h1 className="text-2xl font-bold">Comandas</h1>
+        <button
+          onClick={() => router.push('/vendas')}
+          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+        >
+          Vendas
+        </button>
+        <h1 className="text-2xl font-bold">Comandas</h1>
         <button
           onClick={() => setShowComandaForm(true)}
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
@@ -117,7 +117,7 @@ export default function Comandas() {
           filteredComandas.map(comanda => (
             <div
               key={comanda.Idcomanda}
-              className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
+              className="bg-white p-4 rounded-lg border border-gray-300 hover:border-gray-500 transition-colors"
             >
               <div className="flex justify-between items-start mb-2">
                 <div>
@@ -132,13 +132,13 @@ export default function Comandas() {
                       setSelectedComanda(comanda)
                       setShowComandaDetalhes(true)
                     }}
-                    className="text-primary hover:text-primary-dark"
+                    className="p-2 rounded-lg bg-primary text-white"
                   >
                     Detalhes
                   </button>
                   <button
                     onClick={() => handleDeleteComanda(comanda.Idcomanda)}
-                    className="text-red-600 hover:text-red-700"
+                    className="  p-2 rounded-lg bg-red-400 text-white"
                   >
                     Excluir
                   </button>
@@ -155,12 +155,10 @@ export default function Comandas() {
       {/* Comanda Form Modal */}
       {showComandaForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          
-            <ComandaForm
-              onComandaSelect={handleCreateComanda}
-              onCancel={() => setShowComandaForm(false)}
-            />
-          
+          <ComandaForm
+            onComandaSelect={handleCreateComanda}
+            onCancel={() => setShowComandaForm(false)}
+          />
         </div>
       )}
 

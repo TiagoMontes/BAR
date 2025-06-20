@@ -72,9 +72,6 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="cliente" className="block text-sm font-medium text-gray-700 mb-1">
-              Nome do Cliente
-            </label>
             <input
               type="text"
               id="cliente"

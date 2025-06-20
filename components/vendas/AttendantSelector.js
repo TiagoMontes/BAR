@@ -1,6 +1,6 @@
 export default function AttendantSelector({ atendentes, selectedAtendentes, onSelectAttendant, onRemoveAttendant }) {
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
+    <div className="bg-white p-4 rounded-lg border border-gray-300">
       <h2 className="text-lg font-semibold mb-2">Atendentes (Opcional)</h2>
       <div className="space-y-2">
         <select

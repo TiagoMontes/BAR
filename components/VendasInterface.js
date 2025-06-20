@@ -7,7 +7,7 @@ import ComandaSelector from './vendas/ComandaSelector'
 import AttendantSelector from './vendas/AttendantSelector'
 import PrinterModal from './PrinterModal'
 import Link from 'next/link'
-import { BluetoothService } from '../src/services/BluetoothService'
+import { BluetoothService } from '../services/BluetoothService'
 
 // Comandos ESC/POS para impressoras RP
 const ESC = '\x1B';
@@ -479,11 +479,6 @@ export default function VendasInterface({ user }) {
     }
   };
 
-  const handleViewLastSale = () => {
-    setShowComandaDetalhes(true)
-    setLastSaleCupom(lastSaleCupom)
-  }
-
   const handleSelectAttendant = (atendente) => {
     setSelectedAtendentes([...selectedAtendentes, atendente])
     // Update cart items with commission to include the selected attendant
@@ -589,7 +584,7 @@ export default function VendasInterface({ user }) {
             selectedComanda={selectedComanda}
           />
           {hasCommissionProducts() && (
-            <div className="rounded-lg shadow lg:hidden">
+            <div className="rounded-lg lg:hidden">
               <AttendantSelector
                 atendentes={atendentes}
                 selectedAtendentes={selectedAtendentes}
@@ -611,7 +606,7 @@ export default function VendasInterface({ user }) {
         {/* Lado Direito - Comanda, Atendentes e Carrinho */}
         <div className="lg:col-span-5 space-y-6">
           {/* Seleção de Comanda */}
-          <div className="rounded-lg shadow">
+          <div className="rounded-lg">
             <ComandaSelector
               comandas={comandas}
               selectedComanda={selectedComanda}
@@ -623,7 +618,7 @@ export default function VendasInterface({ user }) {
           
           {/* Seleção de Atendentes */}
           {hasCommissionProducts() && (
-            <div className="rounded-lg shadow hidden lg:block">
+            <div className="rounded-lg hidden lg:block">
               <AttendantSelector
                 atendentes={atendentes}
                 selectedAtendentes={selectedAtendentes}
@@ -634,7 +629,7 @@ export default function VendasInterface({ user }) {
           )}
 
           {/* Carrinho */}
-          <div className="rounded-lg shadow hidden lg:block">
+          <div className="rounded-lg hidden lg:block">
             <Cart
               cart={cart}
               produtos={produtos}

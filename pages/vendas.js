@@ -40,9 +40,9 @@ export default function Vendas() {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-4 flex flex-col lg:flex-row justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-800">TecBar</h1>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-4">
             <span className="text-gray-600">
               Operador: {user.Nome}
             </span>
@@ -52,7 +52,7 @@ export default function Vendas() {
                 localStorage.removeItem('user')
                 router.push('/')
               }}
-              className="px-4 py-2 text-sm text-red-600 hover:text-red-700"
+              className="px-4 py-2 bg-red-400 text-sm text-white hover:bg-red-500 rounded-lg"
             >
               Sair
             </button>
