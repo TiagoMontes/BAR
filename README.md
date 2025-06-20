@@ -25,25 +25,11 @@ cd <nome-da-pasta-do-projeto>
 npm install
 ```
 
-### 3. Gerar APK de Instalação
-
-```bash
-npm run generate:config
-```
-
-> Isso irá gerar o arquivo `bar.apk` em `./apk`.
-
-### 4. Transferir o APK para o Dispositivo
-
-- Envie o arquivo `apk/bar.apk` para o Google Drive.
-- Acesse o Google Drive no dispositivo Android.
-- Baixe e instale o APK (permitir instalações externas, se necessário).
-
-### 5. Conectar Todos os Dispositivos à Mesma Rede
+### 3. Conectar Todos os Dispositivos à Mesma Rede
 
 - O **dispositivo Android** e o **computador com o servidor** devem estar conectados na mesma rede Wi-Fi (intranet).
 
-### 6. Iniciar o Projeto
+### 4. Iniciar o Projeto
 
 ```bash
 npm run dev:all
@@ -51,7 +37,7 @@ npm run dev:all
 
 > Isso inicia o frontend Next.js e o backend Express juntos.
 
-### 7. Acessar a Aplicação no Dispositivo
+### 5. Acessar a Aplicação no Dispositivo
 
 - No navegador do Android ou WebView:
   - Acesse o IP local da máquina onde o projeto está rodando.
@@ -71,14 +57,28 @@ npm run dev:all
 
 ## 📝 Comandos Importantes
 
-| Comando                  | Descrição                                                    |
-|--------------------------|--------------------------------------------------------------|
-| `npm run dev`            | Inicia apenas o frontend Next.js                             |
-| `npm run start`          | Inicia aplicação já compilada                                |
-| `npm run generate:config`| Gera o arquivo de configuração antes de buildar              |
-| `npm run build:dev:apk`  | Gera o APK para testes com config atual                      |
-| `npm run dev:all`        | Inicia o frontend e o backend Express simultaneamente        |
-| `npm run build:apk`      | Gera o APK em `/apk/bar.apk`                                 |
+| Comando                   | Descrição                                             |
+| ------------------------- | ----------------------------------------------------- |
+| `npm run dev`             | Inicia apenas o frontend Next.js                      |
+| `npm run start`           | Inicia aplicação já compilada                         |
+| `npm run build:dev:apk`   | Gera o APK para testes com config atual               |
+| `npm run dev:all`         | Inicia o frontend e o backend Express simultaneamente |
+| `npm run build:apk`       | Gera o APK em `/apk/bar.apk`                          |
+| `npm run limpar:vendas`   | Limpa os dados de vendas                              |
+| `npm run set:config`      | Define o IP fixo (executar apenas uma vez)            |
+| `npm run sync:operadores` | Sincroniza operadores quando adicionados no TecBar    |
+
+---
+
+## ⚙️ Configurações Importantes
+
+### Configuração de IP
+
+- Execute `npm run set:config` **apenas uma vez** para definir o IP fixo do servidor.
+
+### Sincronização de Operadores
+
+- Quando um novo operador for adicionado no sistema TecBar, execute `npm run sync:operadores` para sincronizar os dados.
 
 ---
 
