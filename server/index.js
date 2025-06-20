@@ -61,16 +61,29 @@ app.post('/api/auth/login', async (req, res) => {
     const operadoresContent = await fs.readFile(operadoresPath, 'utf-8');
     const operadores = JSON.parse(operadoresContent);
 
+    const operadoresControladorPath = path.join(DATA_DIR_JSON, 'operadoresControlador.json');
+    const operadoresControladorContent = await fs.readFile(operadoresControladorPath, 'utf-8');
+    const operadoresControlador = JSON.parse(operadoresControladorContent);
+
     if (!validateOperadores(operadores)) {
       return res.status(500).json({ message: 'Invalid operadores data structure' });
     }
 
     const operador = operadores.find(
-      op => op.Usuario.toLowerCase() === username.toLowerCase() && op.Senha === password
+      op => op.Nome.toLowerCase() === username.toLowerCase() && op.Senha === password
     );
 
     if (!operador) {
       return res.status(401).json({ message: 'Usuário ou senha inválidos' });
+    }
+
+    // Buscar o objeto do operadoresControlador usando o ID que corresponde à senha do operador
+    const operadorControlador = operadoresControlador.find(
+      oc => oc.Id === operador.Senha
+    );
+
+    if (!operadorControlador) {
+      return res.status(401).json({ message: 'Operador não encontrado no controlador' });
     }
 
     // Check for active sessions
@@ -78,7 +91,7 @@ app.post('/api/auth/login', async (req, res) => {
     const sessoesContent = await fs.readFile(sessoesPath, 'utf-8');
     const sessoesData = JSON.parse(sessoesContent);
 
-    const sessaoAtiva = sessoesData.sessoes.find(s => s.operadorId === operador.Id);
+    const sessaoAtiva = sessoesData.sessoes.find(s => s.operadorId === operadorControlador.Id);
     if (sessaoAtiva) {
       return res.status(409).json({ 
         message: 'Operador já está logado em outra sessão',
@@ -91,7 +104,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Create new session
     const novaSessao = {
-      operadorId: operador.Id,
+      operadorId: operadorControlador.Id,
       inicio: new Date().toISOString(),
       ultimoAcesso: new Date().toISOString()
     };
@@ -99,13 +112,19 @@ app.post('/api/auth/login', async (req, res) => {
     sessoesData.sessoes.push(novaSessao);
     await fs.writeFile(sessoesPath, JSON.stringify(sessoesData, null, 2));
 
-    // Remove password from response
-    const { Senha, ...operadorSemSenha } = operador;
-
-    res.status(200).json({
-      user: operadorSemSenha,
+    // Juntar todos os valores em um único objeto
+    const userData = {
+      user: {
+        ...operador,
+        ...operadorControlador,
+      },
       sessao: novaSessao
-    });
+    };
+
+    // Remove password from response
+    const { Senha, ...userDataSemSenha } = userData;
+
+    res.status(200).json(userDataSemSenha);
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Internal server error' });

@@ -27,6 +27,7 @@ export default function Login() {
   }, [router])
 
   const handleLogin = (userData) => {
+    console.log(JSON.stringify(userData))
     // Store user data in localStorage
     localStorage.setItem('user', JSON.stringify(userData))
     // Redirect to sales page

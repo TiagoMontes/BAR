@@ -15,6 +15,8 @@ export default function LoginForm({ onLogin, onLogout }) {
 
     try {
       const response = await login(username, password)
+      console.log(response)
+
       if (response.sessaoAtiva) {
         setSessaoAtiva(response.sessaoAtiva)
         setError('Este operador já está logado em outra sessão. Deseja forçar o logout?')
@@ -23,29 +25,6 @@ export default function LoginForm({ onLogin, onLogout }) {
       }
     } catch (err) {
       setError(err.message || 'Erro ao fazer login')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleLogout = async (operadorId) => {
-    setIsLoading(true)
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ operadorId }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Erro ao fazer logout')
-      }
-
-      onLogout()
-    } catch (err) {
-      setError(err.message || 'Erro ao fazer logout')
     } finally {
       setIsLoading(false)
     }

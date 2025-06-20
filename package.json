@@ -16,6 +16,7 @@
     "build:apk": "cd android && ./gradlew assembleDebug && cd .. && mkdir -p apk && mv android/app/build/outputs/apk/debug/app-debug.apk apk/bar.apk",
     "generate:config": "node scripts/generateConfig.js",
     "set:config": "node scripts/setConfig.js",
+    "sync:operadores": "node scripts/syncOperadores.js",
     "build:dev:apk": "npm run build && npm run cap:sync && npm run build:apk",
     "dev:all": "concurrently \"npm run dev\" \"node server/index.js\""
   },
