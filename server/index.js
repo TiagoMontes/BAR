@@ -238,51 +238,40 @@ app.post('/api/comandas/create', async (req, res) => {
       return res.status(400).json({ message: 'Nome do cliente é obrigatório' });
     }
 
+    // Criar pasta Comandas se não existir
+    const comandasDir = path.join(DATA_DIR_DEFAULT, 'Comandas');
+    try {
+      await fs.mkdir(comandasDir, { recursive: true });
+    } catch (error) {
+      // Ignorar erro se o diretório já existir
+    }
+
+    // Ler comandas existentes para gerar novo ID
     const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandas = await readJsonFile(comandasPath);
     
-    // Validar estrutura dos dados
-    if (!Array.isArray(comandas)) {
-      return res.status(500).json({ message: 'Invalid commands data structure' });
-    }
-
-    // Verificar se já existe comanda para este cliente (case insensitive)
-    const existingComanda = comandas.find(
-      c => c.Cliente.toUpperCase() === cliente.toUpperCase()
-    );
-
-    if (existingComanda) {
-      return res.status(200).json({
-        exists: true,
-        comanda: existingComanda,
-        message: 'Já existe uma comanda para este cliente'
-      });
-    }
-
     // Gerar novo ID de comanda
     const lastId = comandas.length > 0 
       ? Math.max(...comandas.map(c => c.Idcomanda))
       : 0;
     const newId = lastId + 1;
 
-    // Criar nova comanda
-    const newComanda = {
-      Idcomanda: newId,
-      Cliente: cliente.toUpperCase(),
-      saldo: 0,
-      Entrada: new Date().toLocaleString('pt-BR')
-    };
-
-    // Adicionar à lista de comandas
-    comandas.push(newComanda);
-    await writeJsonFile(comandasPath, comandas);
+    // Criar conteúdo do arquivo .cv no formato: id_da_comanda!nome_da_comanda!entrada_data
+    const entradaData = new Date().toLocaleString('pt-BR');
+    const cvContent = `${newId}!${cliente.toUpperCase()}!${entradaData}`;
+    const cvFileName = `${String(newId).padStart(5, '0')}.cv`;
+    const cvFilePath = path.join(comandasDir, cvFileName);
+    
+    await fs.writeFile(cvFilePath, cvContent, 'utf8');
 
     res.status(200).json({
-      exists: false,
-      comanda: newComanda
+      success: true,
+      message: 'Arquivo .cv criado com sucesso',
+      comandaId: newId,
+      fileName: cvFileName
     });
   } catch (error) {
-    console.error('Error creating/checking comanda:', error);
+    console.error('Error creating .cv file:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
