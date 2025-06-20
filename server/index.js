@@ -8,7 +8,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Define the data directory path (parent directory)
-const DATA_DIR = path.join(__dirname, '../../');
+const DATA_DIR_DEFAULT = path.join(__dirname, '../../');
+const DATA_DIR_JSON = path.join(__dirname, '../../JSon');
 
 // Middleware
 app.use(cors());
@@ -56,7 +57,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ message: 'Username and password are required' });
     }
 
-    const operadoresPath = path.join(DATA_DIR, 'operadores.json');
+    const operadoresPath = path.join(DATA_DIR_JSON, 'operadores.json');
     const operadoresContent = await fs.readFile(operadoresPath, 'utf-8');
     const operadores = JSON.parse(operadoresContent);
 
@@ -73,7 +74,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Check for active sessions
-    const sessoesPath = path.join(DATA_DIR, 'sessoes.json');
+    const sessoesPath = path.join(DATA_DIR_JSON, 'sessoes.json');
     const sessoesContent = await fs.readFile(sessoesPath, 'utf-8');
     const sessoesData = JSON.parse(sessoesContent);
 
@@ -119,7 +120,7 @@ app.post('/api/auth/logout', async (req, res) => {
   }
 
   try {
-    const sessoesPath = path.join(DATA_DIR, 'sessoes.json');
+    const sessoesPath = path.join(DATA_DIR_JSON, 'sessoes.json');
     const sessoesContent = await fs.readFile(sessoesPath, 'utf-8');
     const sessoesData = JSON.parse(sessoesContent);
 
@@ -137,7 +138,7 @@ app.post('/api/auth/logout', async (req, res) => {
 // Data routes
 app.get('/api/operadores', async (req, res) => {
   try {
-    const data = await fs.readFile(path.join(DATA_DIR, 'operadores.json'), 'utf8');
+    const data = await fs.readFile(path.join(DATA_DIR_JSON, 'operadores.json'), 'utf8');
     const operadores = JSON.parse(data);
     res.json(operadores);
   } catch (error) {
@@ -153,11 +154,11 @@ app.get('/api/operadores', async (req, res) => {
 app.get('/api/produtos', async (req, res) => {
   try {
     // Lê os produtos
-    const produtosData = await fs.readFile(path.join(DATA_DIR, 'Produtos.json'), 'utf8');
+    const produtosData = await fs.readFile(path.join(DATA_DIR_JSON, 'Produtos.json'), 'utf8');
     const produtos = JSON.parse(produtosData);
 
     // Lê o top12
-    const top12Data = await fs.readFile(path.join(DATA_DIR, 'top12.json'), 'utf8');
+    const top12Data = await fs.readFile(path.join(DATA_DIR_JSON, 'top12.json'), 'utf8');
     const top12 = JSON.parse(top12Data);
 
     // Cria um mapa de posição para cada produto do top12
@@ -197,7 +198,7 @@ app.get('/api/produtos', async (req, res) => {
 
 app.get('/api/comandas', async (req, res) => {
   try {
-    const data = await fs.readFile(path.join(DATA_DIR, 'comandas.json'), 'utf8');
+    const data = await fs.readFile(path.join(DATA_DIR_JSON, 'comandas.json'), 'utf8');
     const comandas = JSON.parse(data);
     res.json(comandas);
   } catch (error) {
@@ -218,7 +219,7 @@ app.post('/api/comandas/create', async (req, res) => {
       return res.status(400).json({ message: 'Nome do cliente é obrigatório' });
     }
 
-    const comandasPath = path.join(DATA_DIR, 'comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandas = await readJsonFile(comandasPath);
     
     // Validar estrutura dos dados
@@ -276,7 +277,7 @@ app.post('/api/comandas/remove', async (req, res) => {
     }
 
     // Ler o arquivo de comandas
-    const comandasPath = path.join(DATA_DIR, 'comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandasData = await fs.readFile(comandasPath, 'utf8');
     const comandas = JSON.parse(comandasData);
 
@@ -300,7 +301,7 @@ app.post('/api/comandas/close', async (req, res) => {
       return res.status(400).json({ message: 'O ID da comanda é obrigatório.' });
     }
 
-    const comandasPath = path.join(DATA_DIR, 'comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandas = await readJsonFile(comandasPath);
     
     const comandaIndex = comandas.findIndex(c => c.Idcomanda === comandaId);
@@ -331,7 +332,7 @@ app.post('/api/vendas', async (req, res) => {
     }
 
     // Ler comandas existentes
-    const comandasPath = path.join(DATA_DIR, 'comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandasData = await fs.readFile(comandasPath, 'utf8');
     const comandas = JSON.parse(comandasData);
 
@@ -342,7 +343,7 @@ app.post('/api/vendas', async (req, res) => {
     }
 
     // Ler produtos para calcular o valor total
-    const produtosPath = path.join(DATA_DIR, 'produtos.json');
+    const produtosPath = path.join(DATA_DIR_JSON, 'Produtos.json');
     const produtosData = await fs.readFile(produtosPath, 'utf8');
     const produtos = JSON.parse(produtosData);
 
@@ -360,7 +361,7 @@ app.post('/api/vendas', async (req, res) => {
     await fs.writeFile(comandasPath, JSON.stringify(comandas, null, 2));
 
     // Gerar cupomId sequencial
-    const salesDir = path.join(DATA_DIR, 'vendas');
+    const salesDir = path.join(DATA_DIR_DEFAULT, 'vendas');
     try {
       await fs.mkdir(salesDir, { recursive: true });
     } catch (error) {
@@ -413,7 +414,7 @@ app.post('/api/vendas', async (req, res) => {
 // Adicionar após as outras rotas e antes do catch-all route
 app.get('/api/atendentes', async (req, res) => {
   try {
-    const atendentesPath = path.join(DATA_DIR, 'atendentes.json');
+    const atendentesPath = path.join(DATA_DIR_JSON, 'atendentes.json');
     const atendentes = await readJsonFile(atendentesPath);
     
     // Validar estrutura dos dados
@@ -443,11 +444,11 @@ app.get('/api/vendas/comanda/:id', async (req, res) => {
     const { id } = req.params;
 
     // Read produtos.json to get prices
-    const produtosPath = path.join(DATA_DIR, 'produtos.json');
+    const produtosPath = path.join(DATA_DIR_JSON, 'produtos.json');
     const produtosContent = await fs.readFile(produtosPath, 'utf-8');
     const produtos = JSON.parse(produtosContent);
 
-    const salesDir = path.join(DATA_DIR, 'vendas');
+    const salesDir = path.join(DATA_DIR_DEFAULT, 'vendas');
     const files = await fs.readdir(salesDir);
     
     // Filter files for this comanda
