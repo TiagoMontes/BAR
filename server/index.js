@@ -370,8 +370,10 @@ app.post('/api/vendas', async (req, res) => {
 
     // Gerar cupomId sequencial
     const salesDir = path.join(DATA_DIR_DEFAULT, 'vendas');
+    const salesHistoryDir = path.join(DATA_DIR_DEFAULT, 'historico');
     try {
       await fs.mkdir(salesDir, { recursive: true });
+      await fs.mkdir(salesHistoryDir, { recursive: true });
     } catch (error) {
       // Ignorar erro se o diretório já existir
     }
@@ -402,6 +404,7 @@ app.post('/api/vendas', async (req, res) => {
     const saleFileName = `${String(comandaId).padStart(5, '0')}-${String(operadorId).padStart(2, '0')}-${String(cupomId).padStart(5, '0')}.cv`;
     
     await fs.writeFile(path.join(salesDir, saleFileName), saleContent);
+    await fs.writeFile(path.join(salesHistoryDir, saleFileName), saleContent);
 
     res.json({ 
       success: true, 
