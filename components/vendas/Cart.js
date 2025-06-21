@@ -39,12 +39,6 @@ export default function Cart({ cart, produtos, onUpdateQuantity, onRemoveItem, o
                     >
                       +
                     </button>
-                    <button
-                      className="px-2 py-1 text-red-500 hover:text-red-600"
-                      onClick={() => onRemoveItem(item.produtoId)}
-                    >
-                      ×
-                    </button>
                   </div>
                 </div>
               )
