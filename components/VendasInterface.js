@@ -360,7 +360,7 @@ export default function VendasInterface({ user }) {
       // Registra a venda primeiro
       const response = await registerSale({
         comandaId: selectedComanda.Idcomanda,
-        operadorId: user.Nome,
+        operadorId: user["Id operador"],
         items: cart,
         atendentes: selectedAtendentes.map(a => a.id)
       })

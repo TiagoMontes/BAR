@@ -2,7 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 // Define the vendas directory path
-const VENDAS_DIR = path.join(__dirname, '../../vendas');
+const VENDAS_DIR = path.join(__dirname, '../../Historico');
 const COMANDAS_PATH = path.join(__dirname, '../../JSon/comandas.json');
 
 async function limparVendas() {
