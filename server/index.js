@@ -77,9 +77,9 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ message: 'Usuário ou senha inválidos' });
     }
 
-    // Buscar o objeto do operadoresControlador usando o ID que corresponde à senha do operador
+    // Buscar o objeto do operadoresControlador usando o ID que corresponde ao "Id operador"
     const operadorControlador = operadoresControlador.find(
-      oc => oc.Id === operador.Senha
+      oc => oc.Id === operador['Id operador']
     );
 
     if (!operadorControlador) {
@@ -173,7 +173,7 @@ app.get('/api/operadores', async (req, res) => {
 app.get('/api/produtos', async (req, res) => {
   try {
     // Lê os produtos
-    const produtosData = await fs.readFile(path.join(DATA_DIR_JSON, 'Produtos.json'), 'utf8');
+    const produtosData = await fs.readFile(path.join(DATA_DIR_JSON, 'produtos.json'), 'utf8');
     const produtos = JSON.parse(produtosData);
 
     // Lê o top12
@@ -351,7 +351,7 @@ app.post('/api/vendas', async (req, res) => {
     }
 
     // Ler produtos para calcular o valor total
-    const produtosPath = path.join(DATA_DIR_JSON, 'Produtos.json');
+    const produtosPath = path.join(DATA_DIR_JSON, 'produtos.json');
     const produtosData = await fs.readFile(produtosPath, 'utf8');
     const produtos = JSON.parse(produtosData);
 

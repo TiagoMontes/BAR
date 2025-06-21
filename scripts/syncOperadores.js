@@ -35,7 +35,7 @@ async function syncOperadores() {
 
     // Processar cada operador
     operadores.forEach((operador, index) => {
-      const operadorId = operador.Senha; // Usar a senha como ID
+      const operadorId = operador['Id operador']; // Usar o "Id operador" como ID
       
       if (!existingIds.has(operadorId)) {
         // Criar novo objeto no controlador
