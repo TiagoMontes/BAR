@@ -232,10 +232,10 @@ app.get('/api/comandas', async (req, res) => {
 
 app.post('/api/comandas/create', async (req, res) => {
   try {
-    const { cliente } = req.body;
+    const { cliente, operadorId } = req.body;
 
-    if (!cliente) {
-      return res.status(400).json({ message: 'Nome do cliente é obrigatório' });
+    if (!cliente || !operadorId) {
+      return res.status(400).json({ message: 'Nome do cliente e operadorId são obrigatórios' });
     }
 
     // Criar pasta Comandas se não existir
@@ -258,7 +258,7 @@ app.post('/api/comandas/create', async (req, res) => {
 
     // Criar conteúdo do arquivo .cv no formato: id_da_comanda!nome_da_comanda!entrada_data
     const entradaData = new Date().toLocaleString('pt-BR');
-    const cvContent = `${newId}!${cliente.toUpperCase()}!${entradaData}`;
+    const cvContent = `${newId}!${cliente.toUpperCase()}!${operadorId}!${entradaData}`;
     const cvFileName = `${String(newId).padStart(5, '0')}.cv`;
     const cvFilePath = path.join(comandasDir, cvFileName);
     
@@ -401,7 +401,7 @@ app.post('/api/vendas', async (req, res) => {
       return `${item.produtoId}!${produto.Descricao}!${item.quantidade}!${atendenteIds}!`;
     }).join('\n');
 
-    const saleFileName = `${String(comandaId).padStart(5, '0')}-${String(operadorId).padStart(2, '0')}-${String(cupomId).padStart(5, '0')}.cv`;
+    const saleFileName = `${String(comandaId).padStart(5, '0')}-${String(operadorId).padStart(2, '0')}-${String(cupomId).padStart(4, '0')}.cv`;
     
     await fs.writeFile(path.join(salesDir, saleFileName), saleContent);
     await fs.writeFile(path.join(salesHistoryDir, saleFileName), saleContent);

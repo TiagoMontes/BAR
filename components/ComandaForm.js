@@ -11,9 +11,10 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
     e.preventDefault()
     setError('')
     setIsLoading(true)
-
+    const userData = localStorage.getItem('user')
     try {
-      const response = await createComanda(cliente)
+      const user = JSON.parse(userData)
+      const response = await createComanda(cliente, user["Id operador"])
       
       if (response.exists) {
         setExistingComanda(response.comanda)

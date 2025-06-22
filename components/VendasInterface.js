@@ -241,7 +241,7 @@ export default function VendasInterface({ user }) {
     receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Código Descricao Produto\n`;
-    receipt += `Vr Unit. Qtde Vr Total\n\n`;
+    receipt += `Vr Unit. x Qtde Vr = Total\n\n`;
 
     let totalQuantity = 0;
     let totalValue = 0;
@@ -253,7 +253,7 @@ export default function VendasInterface({ user }) {
         totalQuantity += item.quantidade;
         totalValue += itemTotal;
 
-        receipt += `${DOUBLE_SIZE}${BOLD_ON}${String(produto.Id).padStart(3, '0')} ${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
+        receipt += `${DOUBLE_SIZE}${BOLD_ON}${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
         receipt += `${produto.Preco.toFixed(2)} ${String(item.quantidade).padStart(3, '0')} ${itemTotal.toFixed(2)}\n\n`;
       }
     });
