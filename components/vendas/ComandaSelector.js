@@ -4,6 +4,7 @@ import Link from 'next/link'
 export default function ComandaSelector({ comandas, selectedComanda, onComandaSelect, onShowDetails, onCloseComanda }) {
   const [comandaSearchTerm, setComandaSearchTerm] = useState('')
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false)
+  const [isSelectOpen, setIsSelectOpen] = useState(false)
 
   // Filter comandas based on search term
   const filteredComandas = comandas.filter(comanda => 
@@ -31,8 +32,8 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
           </p>
           <div className="flex space-x-4">
             <button
-              onClick={() => onComandaSelect(null)}
-              className="text-sm text-red-600 hover:text-red-700"
+              onClick={() => setIsSelectOpen(true)}
+              className="text-sm text-blue-600 hover:text-blue-700"
             >
               Trocar Comanda
             </button>
@@ -62,28 +63,79 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
               onChange={(e) => setComandaSearchTerm(e.target.value)}
             />
           </div>
-          <div className="max-h-48 overflow-y-auto">
-            {filteredComandas.length === 0 ? (
-              <p className="text-gray-500 text-center py-2">Nenhuma comanda encontrada</p>
-            ) : (
-              filteredComandas.map(comanda => (
-                <div
-                  key={comanda.Idcomanda}
-                  onClick={() => onComandaSelect(comanda)}
-                  className="p-2 hover:bg-gray-50 cursor-pointer rounded-lg transition-colors"
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{comanda.Cliente}</span>
-                    <span className="text-sm text-gray-600">
-                      ID: {comanda.Idcomanda}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    Saldo: R$ {Number(comanda.saldo).toFixed(2)}
-                  </div>
-                </div>
-              ))
-            )}
+          
+          {/* Select Dropdown */}
+          <div className="relative">
+            <select
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary appearance-none bg-white"
+              onChange={(e) => {
+                const selectedId = parseInt(e.target.value)
+                const comanda = comandas.find(c => c.Idcomanda === selectedId)
+                if (comanda) {
+                  onComandaSelect(comanda)
+                }
+              }}
+              value=""
+            >
+              <option value="">Selecione uma comanda...</option>
+              {filteredComandas.map(comanda => (
+                <option key={comanda.Idcomanda} value={comanda.Idcomanda}>
+                  {comanda.Cliente} (ID: {comanda.Idcomanda})
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para trocar comanda quando já há uma selecionada */}
+      {isSelectOpen && selectedComanda && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
+            <h3 className="text-lg font-semibold mb-4">Trocar Comanda</h3>
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Buscar comanda por nome ou ID..."
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary mb-3"
+                value={comandaSearchTerm}
+                onChange={(e) => setComandaSearchTerm(e.target.value)}
+              />
+              <select
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(e) => {
+                  const selectedId = parseInt(e.target.value)
+                  const comanda = comandas.find(c => c.Idcomanda === selectedId)
+                  if (comanda) {
+                    onComandaSelect(comanda)
+                    setIsSelectOpen(false)
+                  }
+                }}
+                value=""
+              >
+                <option value="">Selecione uma nova comanda...</option>
+                {filteredComandas
+                  .filter(comanda => comanda.Idcomanda !== selectedComanda.Idcomanda)
+                  .map(comanda => (
+                    <option key={comanda.Idcomanda} value={comanda.Idcomanda}>
+                      {comanda.Cliente} (ID: {comanda.Idcomanda})
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setIsSelectOpen(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}
