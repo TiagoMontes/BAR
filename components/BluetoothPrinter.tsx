@@ -137,20 +137,20 @@ export const BluetoothPrinter: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto">
       {!isInitialized ? (
-        <div className="text-red-500 text-center">Inicializando Bluetooth...</div>
+        <div className="text-red-400 text-center">Inicializando Bluetooth...</div>
       ) : (
         <div className="space-y-6">
           {/* Scan Section */}
-          <div className="bg-white p-4 rounded-lg border border-gray-400">
+          <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-              <h3 className="text-lg font-semibold">Dispositivos Disponíveis</h3>
+              <h3 className="text-lg font-semibold text-gray-100">Dispositivos Disponíveis</h3>
               <button
                 onClick={scanForDevices}
                 disabled={isScanning}
                 className={`px-4 py-2 w-full lg:w-auto rounded-lg text-white font-medium transition-colors ${
                   isScanning 
-                    ? 'bg-blue-400 cursor-not-allowed' 
-                    : 'bg-blue-500 hover:bg-blue-600'
+                    ? 'bg-blue-600 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700'
                 }`}
               >
                 {isScanning ? 'Procurando...' : 'Procurar'}
@@ -158,7 +158,7 @@ export const BluetoothPrinter: React.FC = () => {
             </div>
 
             {isScanning && (
-              <div className="text-blue-500 text-center py-2">
+              <div className="text-blue-400 text-center py-2">
                 Procurando dispositivos Bluetooth...
               </div>
             )}
@@ -170,21 +170,21 @@ export const BluetoothPrinter: React.FC = () => {
                     key={device.deviceId}
                     className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
                       selectedDevice === device.deviceId 
-                        ? 'bg-blue-50 border-blue-300' 
-                        : 'hover:bg-gray-50'
+                        ? 'bg-blue-900 border-blue-600' 
+                        : 'hover:bg-gray-700 border-gray-600'
                     }`}
                     onClick={() => connectToDevice(device.deviceId)}
                   >
                     <div>
-                      <span className="font-medium">{device.name || 'Dispositivo Desconhecido'}</span>
-                      <span className="text-sm text-gray-500 block">
+                      <span className="font-medium text-gray-100">{device.name || 'Dispositivo Desconhecido'}</span>
+                      <span className="text-sm text-gray-400 block">
                         {device.deviceId}
                       </span>
                     </div>
                     <span className={`text-sm ${
                       selectedDevice === device.deviceId 
-                        ? 'text-green-600 font-medium' 
-                        : 'text-gray-500'
+                        ? 'text-green-400 font-medium' 
+                        : 'text-gray-400'
                     }`}>
                       {selectedDevice === device.deviceId ? 'Conectado' : 'Clique para conectar'}
                     </span>
@@ -196,16 +196,16 @@ export const BluetoothPrinter: React.FC = () => {
 
           {/* Print Section */}
           {isConnected && (
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-semibold mb-4">Print Text</h3>
+            <div className="bg-gray-800 p-4 rounded-lg shadow border border-gray-700">
+              <h3 className="text-lg font-semibold mb-4 text-gray-100">Print Text</h3>
               <div className="space-y-4">
                 <button
                   onClick={handlePrint}
                   disabled={isPrinting}
                   className={`w-full text-white px-6 py-3 rounded-lg font-medium transition-colors ${
                     isPrinting
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-black hover:bg-green-600'
+                      ? 'bg-gray-600 cursor-not-allowed'
+                      : 'bg-gray-700 hover:bg-green-600'
                   }`}
                 >
                   {isPrinting ? 'Imprimindo...' : 'Imprimir'}
@@ -213,10 +213,10 @@ export const BluetoothPrinter: React.FC = () => {
                 <button
                   onClick={disconnectFromDevice}
                   disabled={isPrinting}
-                  className={`w-full text-white bg-black px-6 py-3 rounded-lg font-medium transition-colors ${
+                  className={`w-full text-white px-6 py-3 rounded-lg font-medium transition-colors ${
                     isPrinting
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-red-500 hover:bg-red-600'
+                      ? 'bg-gray-600 cursor-not-allowed'
+                      : 'bg-red-600 hover:bg-red-700'
                   }`}
                 >
                   Disconnect
@@ -227,15 +227,15 @@ export const BluetoothPrinter: React.FC = () => {
 
           {/* Error Display */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg">
+            <div className="bg-red-900 border border-red-700 text-red-200 p-4 rounded-lg">
               {error}
             </div>
           )}
 
           {/* Debug Information */}
-          <div className="bg-gray-50 p-4 rounded-lg w-full border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Informações de Debug:</h3>
-            <p className="text-sm text-gray-600 ">{debugInfo}</p>
+          <div className="bg-gray-800 p-4 rounded-lg w-full border border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-200 mb-2">Informações de Debug:</h3>
+            <p className="text-sm text-gray-300">{debugInfo}</p>
           </div>
         </div>
       )}

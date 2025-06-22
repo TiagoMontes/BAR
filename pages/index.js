@@ -43,14 +43,14 @@ export default function Login() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 gap-4">
+    <div className="min-h-screen bg-gray-900 flex flex-col justify-center py-12 px-4 gap-4">
       <LoginForm onLogin={handleLogin} onLogout={handleLogout} />
       <ServerConfig />
     </div>

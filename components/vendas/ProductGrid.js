@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
 export default function ProductGrid({ produtos, onAddToCart }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSetor, setSelectedSetor] = useState('todos')
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(false)
+  const itemsPerPage = 30
 
   // Detect mobile screen
   useEffect(() => {
@@ -18,21 +19,28 @@ export default function ProductGrid({ produtos, onAddToCart }) {
   }, [])
 
   // Get unique sectors
-  const setores = ['todos', ...new Set(produtos.map(p => p.Setor))]
+  const setores = useMemo(() => {
+    const sectors = [...new Set(produtos.map(p => p.Setor).filter(Boolean))]
+    return ['todos', ...sectors]
+  }, [produtos])
 
   // Filter products based on search term and selected sector
-  const filteredProdutos = produtos.filter(produto => {
-    const matchesSearch = produto.Descricao.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesSetor = selectedSetor === 'todos' || produto.Setor === selectedSetor
-    return matchesSearch && matchesSetor
-  })
+  const filteredProducts = useMemo(() => {
+    return produtos.filter(produto => {
+      const matchesSearch = produto.Descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           String(produto.Id).includes(searchTerm)
+      const matchesSector = selectedSetor === 'todos' || produto.Setor === selectedSetor
+      return matchesSearch && matchesSector
+    })
+  }, [produtos, searchTerm, selectedSetor])
 
-  // Calculate pagination
-  const productsPerPage = isMobile ? 6 : 12
-  const totalPages = Math.ceil(filteredProdutos.length / productsPerPage)
-  const startIndex = (currentPage - 1) * productsPerPage
-  const endIndex = startIndex + productsPerPage
-  const currentProducts = filteredProdutos.slice(startIndex, endIndex)
+  // Paginate products
+  const currentProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredProducts.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredProducts, currentPage])
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -47,7 +55,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
           <input
             type="text"
             placeholder="Buscar produtos..."
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -61,8 +69,8 @@ export default function ProductGrid({ produtos, onAddToCart }) {
               onClick={() => setSelectedSetor(setor)}
               className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
                 selectedSetor === setor
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
               }`}
             >
               {setor === 'todos' ? 'Todos' : setor}
@@ -74,18 +82,18 @@ export default function ProductGrid({ produtos, onAddToCart }) {
       {/* Products Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {currentProducts.length === 0 ? (
-          <div className="col-span-full text-center py-8 text-gray-500">
+          <div className="col-span-full text-center py-8 text-gray-400">
             Nenhum produto encontrado
           </div>
         ) : (
           currentProducts.map(produto => (
             <div
               key={produto.Id}
-              className="bg-white p-4 rounded-lg border border-gray-300 hover:border-gray-500 transition-colors cursor-pointer flex flex-col justify-between"
+              className="bg-gray-800 p-4 rounded-lg border border-gray-700 hover:border-gray-500 transition-colors cursor-pointer flex flex-col justify-between hover:bg-gray-750"
               onClick={() => onAddToCart(produto)}
             >
-              <h3 className="font-semibold text-sm truncate">{produto.Descricao}</h3>
-              <p className="text-gray-600 text-sm">R$ {Number(produto.Preco.toFixed(2))}</p>
+              <h3 className="font-semibold text-sm truncate text-gray-100">{produto.Descricao}</h3>
+              <p className="text-gray-300 text-sm">R$ {Number(produto.Preco.toFixed(2))}</p>
             </div>
           ))
         )}
@@ -93,25 +101,25 @@ export default function ProductGrid({ produtos, onAddToCart }) {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-4">
+        <div className="mt-6 flex justify-center space-x-2">
           <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="px-2 py-1 text-sm rounded bg-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            &lt;
+            Anterior
           </button>
           
-          <span className="text-sm text-gray-600">
+          <span className="px-3 py-2 text-gray-300">
             Página {currentPage} de {totalPages}
           </span>
-
+          
           <button
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="px-2 py-1 text-sm rounded bg-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            &gt;
+            Próxima
           </button>
         </div>
       )}

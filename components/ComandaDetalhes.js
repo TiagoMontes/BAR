@@ -189,14 +189,14 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-700">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Detalhes da Comanda</h2>
+            <h2 className="text-xl font-semibold text-gray-100">Detalhes da Comanda</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-400 hover:text-gray-300 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -206,45 +206,45 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
 
           {errorMessage && (
             <div className={`mb-4 p-3 rounded ${
-              saleStatus === 'success' ? 'bg-green-50 text-green-700' : 
-              saleStatus === 'warning' ? 'bg-yellow-50 text-yellow-700' : 
-              'bg-red-50 text-red-700'
+              saleStatus === 'success' ? 'bg-green-900 text-green-200' : 
+              saleStatus === 'warning' ? 'bg-yellow-900 text-yellow-200' : 
+              'bg-red-900 text-red-200'
             }`}>
               {errorMessage}
             </div>
           )}
 
-          <div className="border-b pb-4 mb-4">
+          <div className="border-b border-gray-600 pb-4 mb-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-600">Cliente</p>
-                <p className="font-medium">{comanda.Cliente}</p>
+                <p className="text-sm text-gray-400">Cliente</p>
+                <p className="font-medium text-gray-100">{comanda.Cliente}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">ID</p>
-                <p className="font-medium">{comanda.Idcomanda}</p>
+                <p className="text-sm text-gray-400">ID</p>
+                <p className="font-medium text-gray-100">{comanda.Idcomanda}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Data de Abertura</p>
-                <p className="font-medium">{comanda.Entrada}</p>
+                <p className="text-sm text-gray-400">Data de Abertura</p>
+                <p className="font-medium text-gray-100">{comanda.Entrada}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Gasto</p>
-                <p className="font-medium text-primary">R$ {Number(comanda.saldo)?.toFixed(2) || '0.00'}</p>
+                <p className="text-sm text-gray-400">Total Gasto</p>
+                <p className="font-medium text-blue-400">R$ {Number(comanda.saldo)?.toFixed(2) || '0.00'}</p>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold mb-3">Histórico de Vendas</h3>
+            <h3 className="text-lg font-semibold mb-3 text-gray-100">Histórico de Vendas</h3>
             {isLoading ? (
               <div className="flex justify-center py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
               </div>
             ) : error ? (
-              <p className="text-red-500 text-center py-4">{error}</p>
+              <p className="text-red-400 text-center py-4">{error}</p>
             ) : vendas.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">Nenhuma venda registrada</p>
+              <p className="text-gray-400 text-center py-4">Nenhuma venda registrada</p>
             ) : (
               <div className="space-y-4">
                 {vendas.map((venda, index) => {
@@ -253,38 +253,21 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
                   return (
                     <div 
                       key={index} 
-                      className={`border rounded-lg p-4 transition-colors cursor-pointer hover:bg-gray-50 ${
-                        isHighlighted ? 'bg-green-50 border-green-200 shadow-md' : ''
+                      className={`border rounded-lg p-4 transition-colors cursor-pointer hover:bg-gray-700 ${
+                        isHighlighted ? 'bg-green-900 border-green-600 shadow-md' : 'border-gray-600'
                       }`}
                       onClick={() => handleVendaClick(venda)}
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <span className={`text-sm ${isHighlighted ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
+                        <span className={`text-sm ${isHighlighted ? 'text-green-300 font-medium' : 'text-gray-400'}`}>
                           Cupom: {cupomId}
                         </span>
-                        <span className={`font-medium ${isHighlighted ? 'text-green-700' : ''}`}>
+                        <span className={`font-medium ${isHighlighted ? 'text-green-300' : 'text-gray-100'}`}>
                           R$ {Number(venda.total || 0).toFixed(2)}
                         </span>
                       </div>
-                      <div className="space-y-2">
-                        {venda.items.map((item, itemIndex) => (
-                          <div key={itemIndex} className="flex justify-between text-sm">
-                            <div>
-                              <span>{item.descricao} x {item.quantidade}</span>
-                              {item.atendentes && item.atendentes.length > 0 && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  Atendentes: {item.atendentes.map(id => {
-                                    const atendente = atendentes.find(a => a.id === id)
-                                    return atendente ? atendente.Apelido : id
-                                  }).join(', ')}
-                                </div>
-                              )}
-                            </div>
-                            <span className="text-gray-600">
-                              R$ {Number((item.quantidade * item.preco) || 0).toFixed(2)}
-                            </span>
-                          </div>
-                        ))}
+                      <div className="text-sm text-gray-400">
+                        {venda.items?.length || 0} itens
                       </div>
                     </div>
                   )

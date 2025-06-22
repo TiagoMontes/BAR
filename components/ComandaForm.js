@@ -37,16 +37,16 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4">Nova Comanda</h2>
+    <div className="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
+      <h2 className="text-xl font-semibold mb-4 text-gray-100">Nova Comanda</h2>
       
       {existingComanda ? (
         <div className="space-y-4">
-          <div className="bg-yellow-50 p-4 rounded-lg">
-            <p className="text-yellow-800">
+          <div className="bg-yellow-900 p-4 rounded-lg border border-yellow-700">
+            <p className="text-yellow-200">
               Já existe uma comanda para <strong>{existingComanda.Cliente}</strong>
             </p>
-            <p className="text-yellow-800 mt-2">
+            <p className="text-yellow-200 mt-2">
               ID: {existingComanda.Idcomanda} | Saldo: R$ {existingComanda.saldo.toFixed(2)}
             </p>
           </div>
@@ -57,13 +57,13 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
                 setExistingComanda(null)
                 setError('')
               }}
-              className="flex-1 bg-red-400 text-white py-2 px-4 rounded-lg hover:bg-red-500 transition-colors"
+              className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={handleConfirmExisting}
-              className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors"
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Usar Existente
             </button>
@@ -77,28 +77,28 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
               id="cliente"
               value={cliente}
               onChange={(e) => setCliente(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
               placeholder="Digite o nome do cliente"
               required
             />
           </div>
 
           {error && (
-            <div className="text-red-500 text-sm">{error}</div>
+            <div className="text-red-400 text-sm">{error}</div>
           )}
 
           <div className="flex space-x-4">
           <button
               type="button"
               onClick={onCancel}
-              className="flex-1 bg-red-400 text-white py-2 px-4 rounded-lg hover:bg-red-500 transition-colors"
+              className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading || !cliente.trim()}
-              className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Verificando...' : 'Criar'}
             </button>

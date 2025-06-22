@@ -25,15 +25,15 @@ const AttendantReceiptModal = ({ isOpen, attendant, commissionValue, receipt, on
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">
+          <h3 className="text-lg font-semibold text-gray-100">
             Imprimir cupom da atendente: {attendant?.Apelido || 'N/A'}
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-300 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -42,10 +42,10 @@ const AttendantReceiptModal = ({ isOpen, attendant, commissionValue, receipt, on
         </div>
         
         <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-gray-300 mb-2">
             Comissão total: R$ {commissionValue.toFixed(2)}
           </p>
-          <div className="bg-gray-50 p-3 rounded text-xs font-mono whitespace-pre-line max-h-40 overflow-y-auto">
+          <div className="bg-gray-700 p-3 rounded text-xs font-mono whitespace-pre-line max-h-40 overflow-y-auto text-gray-100">
             {receipt}
           </div>
         </div>
@@ -53,13 +53,13 @@ const AttendantReceiptModal = ({ isOpen, attendant, commissionValue, receipt, on
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+            className="px-4 py-2 text-gray-300 border border-gray-600 rounded hover:bg-gray-700 transition-colors"
           >
             Fechar
           </button>
           <button
             onClick={onPrint}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
             Imprimir
           </button>
@@ -507,16 +507,16 @@ export default function VendasInterface({ user }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg">
+      <div className="container mx-auto px-4 py-8 bg-gray-900 min-h-screen">
+        <div className="bg-red-900 border border-red-700 text-red-200 p-4 rounded-lg">
           <h2 className="text-lg font-semibold mb-2">Erro ao carregar dados</h2>
           <p>{error}</p>
           <button
@@ -531,14 +531,14 @@ export default function VendasInterface({ user }) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-gray-900 min-h-screen">
       {/* Status da impressora */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <div className={`w-3 h-3 rounded-full ${
             printerStatus.includes('conectada') ? 'bg-green-500' : 'bg-red-500'
           }`}></div>
-          <span className="text-sm text-gray-600">{printerStatus}</span>
+          <span className="text-sm text-gray-300">{printerStatus}</span>
         </div>
         <button
           onClick={handlePrinterSetup}
@@ -564,9 +564,9 @@ export default function VendasInterface({ user }) {
       {/* Mensagens de status */}
       {errorMessage && (
         <div className={`mb-4 p-4 rounded-lg ${
-          saleStatus === 'success' ? 'bg-green-50 border border-green-200 text-green-600' :
-          saleStatus === 'warning' ? 'bg-yellow-50 border border-yellow-200 text-yellow-600' :
-          'bg-red-50 border border-red-200 text-red-600'
+          saleStatus === 'success' ? 'bg-green-900 border border-green-700 text-green-200' :
+          saleStatus === 'warning' ? 'bg-yellow-900 border border-yellow-700 text-yellow-200' :
+          'bg-red-900 border border-red-700 text-red-200'
         }`}>
           <p>{errorMessage}</p>
         </div>
@@ -643,7 +643,7 @@ export default function VendasInterface({ user }) {
 
         
           <button
-            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden lg:block"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden lg:block"
             disabled={cart.length === 0 || isProcessingSale}
             onClick={handleSale}
           >
@@ -684,9 +684,9 @@ export default function VendasInterface({ user }) {
         onClose={() => setCurrentAttendantModal(null)}
       />
 
-      <div className="fixed bottom-0 z-10 left-0 right-0 bg-white p-4 pb-10 shadow-lg lg:hidden">
+      <div className="fixed bottom-0 z-10 left-0 right-0 bg-gray-800 p-4 pb-10 shadow-lg lg:hidden border-t border-gray-700">
         <button
-          className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={cart.length === 0 || isProcessingSale}
           onClick={handleSale}
         >

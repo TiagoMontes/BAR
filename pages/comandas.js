@@ -65,25 +65,25 @@ export default function Comandas() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-gray-900 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <button
           onClick={() => router.push('/vendas')}
-          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
           Vendas
         </button>
-        <h1 className="text-2xl font-bold">Comandas</h1>
+        <h1 className="text-2xl font-bold text-gray-100">Comandas</h1>
         <button
           onClick={() => setShowComandaForm(true)}
-          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
           Criar
         </button>
@@ -94,7 +94,7 @@ export default function Comandas() {
         <input
           type="text"
           placeholder="Buscar comanda por nome ou ID..."
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -102,7 +102,7 @@ export default function Comandas() {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-100 text-red-600 p-4 rounded-lg mb-6">
+        <div className="bg-red-900 text-red-200 p-4 rounded-lg mb-6 border border-red-700">
           {error}
         </div>
       )}
@@ -110,19 +110,19 @@ export default function Comandas() {
       {/* Comandas List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredComandas.length === 0 ? (
-          <div className="col-span-full text-center py-8 text-gray-500">
+          <div className="col-span-full text-center py-8 text-gray-400">
             Nenhuma comanda encontrada
           </div>
         ) : (
           filteredComandas.map(comanda => (
             <div
               key={comanda.Idcomanda}
-              className="bg-white p-4 rounded-lg border border-gray-300 hover:border-gray-500 transition-colors"
+              className="bg-gray-800 p-4 rounded-lg border border-gray-700 hover:border-gray-500 transition-colors"
             >
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h3 className="font-semibold">{comanda.Cliente}</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-semibold text-gray-100">{comanda.Cliente}</h3>
+                  <p className="text-sm text-gray-400">
                     ID: {comanda.Idcomanda}
                   </p>
                 </div>
@@ -132,19 +132,19 @@ export default function Comandas() {
                       setSelectedComanda(comanda)
                       setShowComandaDetalhes(true)
                     }}
-                    className="p-2 rounded-lg bg-primary text-white"
+                    className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                   >
                     Detalhes
                   </button>
                   <button
                     onClick={() => handleDeleteComanda(comanda.Idcomanda)}
-                    className="  p-2 rounded-lg bg-red-400 text-white"
+                    className="p-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
                   >
                     Excluir
                   </button>
                 </div>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-400">
                 Saldo: R$ {comanda.saldo.toFixed(2)}
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function Comandas() {
 
       {/* Comanda Form Modal */}
       {showComandaForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4">
           <ComandaForm
             onComandaSelect={handleCreateComanda}
             onCancel={() => setShowComandaForm(false)}

@@ -13,12 +13,12 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
   )
 
   return (
-    <div className="bg-white p-4 rounded-lg border border-gray-300">
+    <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-lg">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-semibold">Comanda</h2>
+        <h2 className="text-lg font-semibold text-gray-100">Comanda</h2>
         <Link
           href="/comandas"
-          className="text-sm text-primary hover:text-primary-dark"
+          className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
         >
           Gerenciar Comandas
         </Link>
@@ -26,26 +26,26 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
       
       {selectedComanda ? (
         <div className="space-y-2">
-          <p className="font-medium">{selectedComanda.Cliente}</p>
-          <p className="text-sm text-gray-600">
+          <p className="font-medium text-gray-100">{selectedComanda.Cliente}</p>
+          <p className="text-sm text-gray-300">
             ID: {selectedComanda.Idcomanda} | Saldo: R$ {Number(selectedComanda.saldo).toFixed(2)}
           </p>
           <div className="flex space-x-4">
             <button
               onClick={() => setIsSelectOpen(true)}
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
             >
               Trocar Comanda
             </button>
             <button
               onClick={() => onShowDetails(true)}
-              className="text-sm text-primary hover:text-primary-dark"
+              className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
             >
               Detalhes
             </button>
             <button
               onClick={() => setIsCloseModalOpen(true)}
-              className="text-sm text-yellow-600 hover:text-yellow-700"
+              className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
             >
               Fechar Comanda
             </button>
@@ -58,7 +58,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
             <input
               type="text"
               placeholder="Buscar comanda por nome ou ID..."
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
               value={comandaSearchTerm}
               onChange={(e) => setComandaSearchTerm(e.target.value)}
             />
@@ -67,7 +67,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
           {/* Select Dropdown */}
           <div className="relative">
             <select
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary appearance-none bg-white"
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 appearance-none"
               onChange={(e) => {
                 const selectedId = parseInt(e.target.value)
                 const comanda = comandas.find(c => c.Idcomanda === selectedId)
@@ -77,9 +77,9 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
               }}
               value=""
             >
-              <option value="">Selecione uma comanda...</option>
+              <option value="" className="bg-gray-700 text-gray-100">Selecione uma comanda...</option>
               {filteredComandas.map(comanda => (
-                <option key={comanda.Idcomanda} value={comanda.Idcomanda}>
+                <option key={comanda.Idcomanda} value={comanda.Idcomanda} className="bg-gray-700 text-gray-100">
                   {comanda.Cliente} (ID: {comanda.Idcomanda})
                 </option>
               ))}
@@ -95,19 +95,19 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
 
       {/* Modal para trocar comanda quando já há uma selecionada */}
       {isSelectOpen && selectedComanda && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
-            <h3 className="text-lg font-semibold mb-4">Trocar Comanda</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-sm border border-gray-700">
+            <h3 className="text-lg font-semibold mb-4 text-gray-100">Trocar Comanda</h3>
             <div className="mb-4">
               <input
                 type="text"
                 placeholder="Buscar comanda por nome ou ID..."
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary mb-3"
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400 mb-3"
                 value={comandaSearchTerm}
                 onChange={(e) => setComandaSearchTerm(e.target.value)}
               />
               <select
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100"
                 onChange={(e) => {
                   const selectedId = parseInt(e.target.value)
                   const comanda = comandas.find(c => c.Idcomanda === selectedId)
@@ -118,11 +118,11 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                 }}
                 value=""
               >
-                <option value="">Selecione uma nova comanda...</option>
+                <option value="" className="bg-gray-700 text-gray-100">Selecione uma nova comanda...</option>
                 {filteredComandas
                   .filter(comanda => comanda.Idcomanda !== selectedComanda.Idcomanda)
                   .map(comanda => (
-                    <option key={comanda.Idcomanda} value={comanda.Idcomanda}>
+                    <option key={comanda.Idcomanda} value={comanda.Idcomanda} className="bg-gray-700 text-gray-100">
                       {comanda.Cliente} (ID: {comanda.Idcomanda})
                     </option>
                   ))}
@@ -131,7 +131,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
             <div className="flex justify-end space-x-4">
               <button
                 onClick={() => setIsSelectOpen(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-600 text-gray-200 rounded-lg hover:bg-gray-500 transition-colors"
               >
                 Cancelar
               </button>
@@ -141,16 +141,16 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
       )}
 
       {isCloseModalOpen && selectedComanda && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
-            <h3 className="text-lg font-semibold mb-4">Quer mesmo fechar a comanda?</h3>
-            <p className="text-gray-600 mb-6">
-              A comanda de <span className="font-bold">{selectedComanda.Cliente}</span> será fechada e o seu saldo será zerado. Esta ação não pode ser desfeita.
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-sm border border-gray-700">
+            <h3 className="text-lg font-semibold mb-4 text-gray-100">Quer mesmo fechar a comanda?</h3>
+            <p className="text-gray-300 mb-6">
+              A comanda de <span className="font-bold text-gray-100">{selectedComanda.Cliente}</span> será fechada e o seu saldo será zerado. Esta ação não pode ser desfeita.
             </p>
             <div className="flex justify-end space-x-4">
               <button
                 onClick={() => setIsCloseModalOpen(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-600 text-gray-200 rounded-lg hover:bg-gray-500 transition-colors"
               >
                 Cancelar
               </button>
@@ -161,7 +161,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                   }
                   setIsCloseModalOpen(false)
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Fechar
               </button>
