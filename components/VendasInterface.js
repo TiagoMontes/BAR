@@ -175,8 +175,15 @@ export default function VendasInterface({ user }) {
 
   // Gerenciar fila de modais de atendente
   useEffect(() => {
+    console.log('useEffect attendantModalQueue:', {
+      queueLength: attendantModalQueue.length,
+      currentModal: currentAttendantModal,
+      queue: attendantModalQueue
+    });
+    
     if (attendantModalQueue.length > 0 && !currentAttendantModal) {
       const nextModal = attendantModalQueue[0];
+      console.log('Abrindo próximo modal:', nextModal);
       setCurrentAttendantModal(nextModal);
       setAttendantModalQueue(prev => prev.slice(1));
     }
@@ -194,8 +201,7 @@ export default function VendasInterface({ user }) {
       }
       return [...prevCart, { 
         produtoId: produto.Id, 
-        quantidade: 1, 
-        atendenteId: produto.Comissao > 0 ? selectedAtendentes[0]?.id || null : null
+        quantidade: 1
       }]
     })
   }
@@ -254,7 +260,7 @@ export default function VendasInterface({ user }) {
         totalValue += itemTotal;
 
         receipt += `${DOUBLE_SIZE}${BOLD_ON}${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
-        receipt += `${produto.Preco.toFixed(2)} ${String(item.quantidade).padStart(3, '0')} ${itemTotal.toFixed(2)}\n\n`;
+        receipt += `${produto.Preco.toFixed(2)} x ${String(item.quantidade).padStart(3, '0')} = ${itemTotal.toFixed(2)}\n\n`;
       }
     });
 
@@ -266,7 +272,16 @@ export default function VendasInterface({ user }) {
   };
 
   // Nova função para formatar cupom de atendente
-  const formatAttendantReceipt = (attendant, commissionItems, comanda, cupomId) => {
+  const formatAttendantReceipt = (attendantCommission) => {
+    console.log('formatAttendantReceipt chamada com:', attendantCommission);
+    
+    // Verificar se o attendant existe
+    if (!attendantCommission || !attendantCommission.attendant) {
+      console.error('Attendant é undefined ou null');
+      return 'ERRO: Atendente não encontrado';
+    }
+
+    const { attendant, items, totalCommission } = attendantCommission;
     const now = new Date();
     const dateStr = now.toLocaleDateString('pt-BR', { 
       day: '2-digit',
@@ -280,23 +295,20 @@ export default function VendasInterface({ user }) {
     receipt += `================================\n`;
     receipt += `CUPOM DE COMISSAO\n`;
     receipt += `================================\n`;
-    receipt += `${DOUBLE_SIZE}${BOLD_ON}Atendente: ${attendant.Apelido} - ${attendant.id}${BOLD_OFF}${NORMAL_SIZE}\n`;
-    receipt += `${ALIGN_LEFT}Cliente: ${comanda.Cliente}\n`;
-    receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
+    receipt += `${DOUBLE_SIZE}${BOLD_ON}${attendant.Apelido} - ${attendant.id}${BOLD_OFF}${NORMAL_SIZE}\n`;
+    receipt += `${ALIGN_LEFT}Cliente: ${selectedComanda?.Cliente || 'N/A'}\n`;
+    receipt += `Comanda: ${selectedComanda?.Idcomanda || 'N/A'} - Id Venda: ${lastSaleCupom || 'N/A'}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Produtos com Comissao:\n\n`;
 
-    let totalCommission = 0;
-
-    commissionItems.forEach(({ item, produto, commissionPerAttendant }) => {
+    items.forEach(({ item, produto, commissionPerAttendant }) => {
       const itemCommissionTotal = commissionPerAttendant * item.quantidade;
-      totalCommission += itemCommissionTotal;
 
-      receipt += `# ${DOUBLE_SIZE}${BOLD_ON}${String(produto.Id).padStart(3, '0')} ${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
+      receipt += `# ${DOUBLE_SIZE}${BOLD_ON}${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
       receipt += `## Qtde: ${item.quantidade} - Comissao: R$ ${commissionPerAttendant.toFixed(2)}\n`;
       receipt += `## Total: R$ ${itemCommissionTotal.toFixed(2)}\n\n`;
     });
-
+    
     receipt += `--------------------------------\n`;
     receipt += `${DOUBLE_SIZE}${BOLD_ON}COMISSAO:\nR$ ${totalCommission.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n`;
     receipt += `================================\n`;
@@ -307,12 +319,17 @@ export default function VendasInterface({ user }) {
 
   // Calcular comissões por atendente
   const calculateAttendantCommissions = () => {
+    console.log('Calculando comissões...');
+    console.log('Atendentes selecionados:', selectedAtendentes);
+    console.log('Carrinho:', cart);
+    
     const attendantCommissions = {};
 
     // Inicializar para cada atendente selecionado
-    selectedAtendentes.forEach(attendant => {
-      attendantCommissions[attendant.id] = {
-        attendant,
+    selectedAtendentes.forEach(atendente => {
+      console.log('Inicializando comissão para atendente:', atendente);
+      attendantCommissions[atendente.id] = {
+        attendant: atendente, // Garantir que o objeto attendant está sendo passado
         items: [],
         totalCommission: 0
       };
@@ -321,8 +338,16 @@ export default function VendasInterface({ user }) {
     // Processar itens do carrinho
     cart.forEach(item => {
       const produto = produtos.find(p => p.Id === item.produtoId);
-      if (produto && produto.Comissao > 0) {
-        const atendentes = item.atendentes || [];
+      console.log(`Item ${produto?.Descricao}:`, {
+        produtoId: item.produtoId,
+        atendentes: item.atendentes,
+        comissao: produto?.Comissao,
+        quantidade: item.quantidade
+      });
+      
+      if (produto && produto.Comissao > 0 && item.atendentes && item.atendentes.length > 0) {
+        // Distribuir comissão entre os atendentes
+        const atendentes = item.atendentes;
         const comissaoPorAtendente = produto.Comissao / atendentes.length;
         
         atendentes.forEach(atendenteId => {
@@ -334,12 +359,23 @@ export default function VendasInterface({ user }) {
             });
             attendantCommissions[atendenteId].totalCommission += 
               comissaoPorAtendente * item.quantidade;
+            
+            console.log(`Comissão adicionada para atendente ${atendenteId}:`, {
+              produto: produto.Descricao,
+              comissao: comissaoPorAtendente,
+              quantidade: item.quantidade,
+              total: comissaoPorAtendente * item.quantidade
+            });
+          } else {
+            console.warn(`Atendente ${atendenteId} não encontrado nas comissões`);
           }
         });
       }
     });
 
-    return Object.values(attendantCommissions).filter(ac => ac.items.length > 0);
+    const result = Object.values(attendantCommissions).filter(ac => ac.items.length > 0);
+    console.log('Resultado final das comissões:', result);
+    return result;
   };
 
   const handlePrinterSetup = () => {
@@ -409,19 +445,26 @@ export default function VendasInterface({ user }) {
       // Preparar cupons de atendente se houver produtos com comissão
       if (selectedAtendentes.length > 0) {
         const attendantCommissions = calculateAttendantCommissions();
+        console.log('Comissões calculadas:', attendantCommissions);
         
         if (attendantCommissions.length > 0) {
-          const modalsQueue = attendantCommissions.map(commission => ({
-            attendant: commission.attendant,
-            commissionValue: commission.totalCommission,
-            receipt: formatAttendantReceipt(
-              commission.attendant,
-              commission.items,
-              selectedComanda,
-              response.cupomId
-            )
-          }));
+          const modalsQueue = attendantCommissions.map(commission => {
+            console.log('Criando modal para comissão:', commission);
+            
+            // Verificar se o attendant existe
+            if (!commission.attendant) {
+              console.error('Attendant não encontrado na comissão:', commission);
+              return null;
+            }
+            
+            return {
+              attendant: commission.attendant,
+              commissionValue: commission.totalCommission,
+              receipt: formatAttendantReceipt(commission)
+            };
+          }).filter(modal => modal !== null); // Remover modais inválidos
           
+          console.log('Fila de modais criada:', modalsQueue);
           setAttendantModalQueue(modalsQueue);
         }
       }
@@ -480,29 +523,44 @@ export default function VendasInterface({ user }) {
   };
 
   const handleSelectAttendant = (atendente) => {
+    console.log('Selecionando atendente:', atendente);
     setSelectedAtendentes([...selectedAtendentes, atendente])
+    
     // Update cart items with commission to include the selected attendant
-    setCart(prevCart => 
-      prevCart.map(item => {
+    setCart(prevCart => {
+      const updatedCart = prevCart.map(item => {
         const produto = produtos.find(p => p.Id === item.produtoId)
-        return produto?.Comissao > 0 
-          ? { ...item, atendenteId: atendente.id }
-          : item
+        if (produto?.Comissao > 0) {
+          // Se já tem atendentes, adicionar o novo. Se não tem, criar array com o novo
+          const currentAtendentes = item.atendentes || [];
+          if (!currentAtendentes.includes(atendente.id)) {
+            console.log(`Atribuindo atendente ${atendente.id} ao produto ${produto.Descricao}`);
+            return { ...item, atendentes: [...currentAtendentes, atendente.id] }
+          }
+        }
+        return item
       })
-    )
+      return updatedCart
+    })
   }
 
   const handleRemoveAttendant = (atendenteId) => {
+    console.log('Removendo atendente:', atendenteId);
     setSelectedAtendentes(selectedAtendentes.filter(a => a.id !== atendenteId))
+    
     // Remove attendant from cart items
-    setCart(prevCart => 
-      prevCart.map(item => {
+    setCart(prevCart => {
+      const updatedCart = prevCart.map(item => {
         const produto = produtos.find(p => p.Id === item.produtoId)
-        return produto?.Comissao > 0 
-          ? { ...item, atendenteId: null }
-          : item
+        if (produto?.Comissao > 0 && item.atendentes) {
+          const updatedAtendentes = item.atendentes.filter(id => id !== atendenteId);
+          console.log(`Removendo atendente ${atendenteId} do produto ${produto.Descricao}`);
+          return { ...item, atendentes: updatedAtendentes }
+        }
+        return item
       })
-    )
+      return updatedCart
+    })
   }
 
   if (isLoading) {

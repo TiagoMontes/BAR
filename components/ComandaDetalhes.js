@@ -40,7 +40,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
     receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Código Descricao Produto\n`;
-    receipt += `Vr Unit. Qtde Vr Total\n\n`;
+    receipt += `Vr Unit. x Qtde =Vr Total\n\n`;
   
     let totalQuantity = 0;
     let totalValue = 0;
@@ -52,7 +52,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
   
       receipt += `# ${String(item.produtoId).padStart(3, '0')} `;
       receipt += `${DOUBLE_SIZE}${BOLD_ON}${item.descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
-      receipt += `## ${item.preco.toFixed(2)} ${String(item.quantidade).padStart(3, '0')} ${itemTotal.toFixed(2)}\n\n`;
+      receipt += `## ${item.preco.toFixed(2)} x ${String(item.quantidade).padStart(3, '0')} = ${itemTotal.toFixed(2)}\n\n`;
     });
   
     receipt += `--------------------------------\n`;
@@ -77,7 +77,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
     receipt += `================================\n`;
     receipt += `CUPOM DE COMISSAO\n`;
     receipt += `================================\n`;
-    receipt += `${DOUBLE_SIZE}${BOLD_ON}Atendente: ${attendente.Apelido} - ${attendente.id}${BOLD_OFF}${NORMAL_SIZE}\n`;
+    receipt += `${DOUBLE_SIZE}${BOLD_ON}${attendente.Apelido} - ${attendente.id}${BOLD_OFF}${NORMAL_SIZE}\n`;
     receipt += `${ALIGN_LEFT}Cliente: ${comanda.Cliente}\n`;
     receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
