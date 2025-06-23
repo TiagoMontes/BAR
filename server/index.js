@@ -435,7 +435,7 @@ app.get('/api/atendentes', async (req, res) => {
 
     // Filtrar atendentes presentes e ativos
     const presentAtendentes = atendentes.filter(
-      atendente => atendente.Presente === 1 && atendente.Situacao === 1
+      atendente => atendente.Presente === 1 && (atendente.Situacao === 1 || atendente.Situacao === 2)
     );
 
     res.status(200).json(presentAtendentes);

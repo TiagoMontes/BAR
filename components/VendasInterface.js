@@ -590,35 +590,6 @@ export default function VendasInterface({ user }) {
 
   return (
     <div className="container mx-auto px-4 py-8 bg-gray-900 min-h-screen">
-      {/* Status da impressora */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className={`w-3 h-3 rounded-full ${
-            printerStatus.includes('conectada') ? 'bg-green-500' : 'bg-red-500'
-          }`}></div>
-          <span className="text-sm text-gray-300">{printerStatus}</span>
-        </div>
-        <button
-          onClick={handlePrinterSetup}
-          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
-          title="Configurar Impressora"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-            />
-          </svg>
-        </button>
-      </div>
-
       {/* Mensagens de status */}
       {errorMessage && (
         <div className={`mb-4 p-4 rounded-lg ${
@@ -632,6 +603,15 @@ export default function VendasInterface({ user }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-32 lg:mb-0">
         <div className="rounded-lg lg:hidden flex flex-col gap-4">
+          <div className="rounded-lg lg:hidden">
+            <ComandaSelector
+              comandas={comandas}
+              selectedComanda={selectedComanda}
+              onComandaSelect={setSelectedComanda}
+              onShowDetails={setShowComandaDetalhes}
+              onCloseComanda={handleCloseComanda}
+            />
+          </div>
           <Cart
             cart={cart}
             produtos={produtos}
@@ -664,7 +644,7 @@ export default function VendasInterface({ user }) {
         {/* Lado Direito - Comanda, Atendentes e Carrinho */}
         <div className="lg:col-span-5 space-y-6">
           {/* Seleção de Comanda */}
-          <div className="rounded-lg">
+          <div className="rounded-lg hidden lg:block">
             <ComandaSelector
               comandas={comandas}
               selectedComanda={selectedComanda}
@@ -697,6 +677,35 @@ export default function VendasInterface({ user }) {
               isProcessingSale={isProcessingSale}
               selectedComanda={selectedComanda}
             />
+          </div>
+
+                {/* Status da impressora */}
+          <div className="mb-4 flex items-center justify-between lg:hidden">
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${
+                printerStatus.includes('conectada') ? 'bg-green-500' : 'bg-red-500'
+              }`}></div>
+              <span className="text-sm text-gray-300">{printerStatus}</span>
+            </div>
+            <button
+              onClick={handlePrinterSetup}
+              className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
+              title="Configurar Impressora"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                />
+              </svg>
+            </button>
           </div>
 
         

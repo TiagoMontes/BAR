@@ -15,7 +15,9 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
   return (
     <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-lg">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-semibold text-gray-100">Comanda</h2>
+        {selectedComanda && (
+          <p className="font-medium text-gray-100">{selectedComanda.Idcomanda} - {selectedComanda.Cliente}</p>
+        )}
         <Link
           href="/comandas"
           className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
@@ -26,16 +28,12 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
       
       {selectedComanda ? (
         <div className="space-y-2">
-          <p className="font-medium text-gray-100">{selectedComanda.Cliente}</p>
-          <p className="text-sm text-gray-300">
-            ID: {selectedComanda.Idcomanda} | Saldo: R$ {Number(selectedComanda.saldo).toFixed(2)}
-          </p>
           <div className="flex space-x-4">
             <button
               onClick={() => setIsSelectOpen(true)}
               className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
             >
-              Trocar Comanda
+              Trocar
             </button>
             <button
               onClick={() => onShowDetails(true)}
@@ -43,52 +41,68 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
             >
               Detalhes
             </button>
-            <button
-              onClick={() => setIsCloseModalOpen(true)}
-              className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
-            >
-              Fechar Comanda
-            </button>
           </div>
         </div>
       ) : (
         <div className="space-y-2">
           {/* Comanda Search */}
-          <div className="mb-2">
+          <div className="flex flex-col gap-2">
             <input
               type="text"
               placeholder="Buscar comanda por nome ou ID..."
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
               value={comandaSearchTerm}
-              onChange={(e) => setComandaSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          {/* Select Dropdown */}
-          <div className="relative">
-            <select
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 appearance-none"
               onChange={(e) => {
-                const selectedId = parseInt(e.target.value)
-                const comanda = comandas.find(c => c.Idcomanda === selectedId)
-                if (comanda) {
-                  onComandaSelect(comanda)
+                const searchValue = e.target.value
+                setComandaSearchTerm(searchValue)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  // Auto-select first matching comanda when pressing Enter
+                  if (comandaSearchTerm.trim()) {
+                    const matchingComanda = comandas.find(comanda => 
+                      comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
+                      String(comanda.Idcomanda).includes(comandaSearchTerm)
+                    )
+                    
+                    if (matchingComanda) {
+                      onComandaSelect(matchingComanda)
+                      setComandaSearchTerm('')
+                    }
+                  }
                 }
               }}
-              value=""
-            >
-              <option value="" className="bg-gray-700 text-gray-100">Selecione uma comanda...</option>
-              {filteredComandas.map(comanda => (
-                <option key={comanda.Idcomanda} value={comanda.Idcomanda} className="bg-gray-700 text-gray-100">
-                  {comanda.Cliente} (ID: {comanda.Idcomanda})
-                </option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
+            />
+            {/* Show filtered results as clickable options */}
+            {comandaSearchTerm.trim() && (
+              <div className="max-h-40 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg mb-3">
+                {filteredComandas
+                  .filter(comanda => 
+                    comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
+                    String(comanda.Idcomanda).includes(comandaSearchTerm)
+                  )
+                  .map(comanda => (
+                    <div
+                      key={comanda.Idcomanda}
+                      className="px-4 py-2 hover:bg-gray-700 cursor-pointer text-gray-100 border-b border-gray-600 last:border-b-0"
+                      onClick={() => {
+                        onComandaSelect(comanda)
+                        setComandaSearchTerm('')
+                      }}
+                    >
+                      {comanda.Cliente} (ID: {comanda.Idcomanda})
+                    </div>
+                  ))}
+                {filteredComandas.filter(comanda => 
+                  comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
+                  String(comanda.Idcomanda).includes(comandaSearchTerm)
+                ).length === 0 && (
+                  <div className="px-4 py-2 text-gray-400">
+                    Nenhuma comanda encontrada
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -104,29 +118,59 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                 placeholder="Buscar comanda por nome ou ID..."
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400 mb-3"
                 value={comandaSearchTerm}
-                onChange={(e) => setComandaSearchTerm(e.target.value)}
-              />
-              <select
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100"
                 onChange={(e) => {
-                  const selectedId = parseInt(e.target.value)
-                  const comanda = comandas.find(c => c.Idcomanda === selectedId)
-                  if (comanda) {
-                    onComandaSelect(comanda)
-                    setIsSelectOpen(false)
+                  const searchValue = e.target.value
+                  setComandaSearchTerm(searchValue)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    // Auto-select first matching comanda when pressing Enter
+                    if (comandaSearchTerm.trim()) {
+                      const matchingComanda = comandas.find(comanda => 
+                        comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
+                        String(comanda.Idcomanda).includes(comandaSearchTerm)
+                      )
+                      
+                      if (matchingComanda) {
+                        onComandaSelect(matchingComanda)
+                        setComandaSearchTerm('')
+                        setIsSelectOpen(false)
+                      }
+                    }
                   }
                 }}
-                value=""
-              >
-                <option value="" className="bg-gray-700 text-gray-100">Selecione uma nova comanda...</option>
-                {filteredComandas
-                  .filter(comanda => comanda.Idcomanda !== selectedComanda.Idcomanda)
-                  .map(comanda => (
-                    <option key={comanda.Idcomanda} value={comanda.Idcomanda} className="bg-gray-700 text-gray-100">
-                      {comanda.Cliente} (ID: {comanda.Idcomanda})
-                    </option>
-                  ))}
-              </select>
+              />
+              {/* Show filtered results as clickable options */}
+              {comandaSearchTerm.trim() && (
+                <div className="max-h-40 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg mb-3">
+                  {filteredComandas
+                    .filter(comanda => 
+                      comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
+                      String(comanda.Idcomanda).includes(comandaSearchTerm)
+                    )
+                    .map(comanda => (
+                      <div
+                        key={comanda.Idcomanda}
+                        className="px-4 py-2 hover:bg-gray-700 cursor-pointer text-gray-100 border-b border-gray-600 last:border-b-0"
+                        onClick={() => {
+                          onComandaSelect(comanda)
+                          setComandaSearchTerm('')
+                          setIsSelectOpen(false)
+                        }}
+                      >
+                        {comanda.Cliente} (ID: {comanda.Idcomanda})
+                      </div>
+                    ))}
+                  {filteredComandas.filter(comanda => 
+                    comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
+                    String(comanda.Idcomanda).includes(comandaSearchTerm)
+                  ).length === 0 && (
+                    <div className="px-4 py-2 text-gray-400">
+                      Nenhuma comanda encontrada
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex justify-end space-x-4">
               <button

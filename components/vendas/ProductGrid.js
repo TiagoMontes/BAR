@@ -5,7 +5,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
   const [selectedSetor, setSelectedSetor] = useState('todos')
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(false)
-  const itemsPerPage = 30
+  const itemsPerPage = isMobile ? 6 : 18
 
   // Detect mobile screen
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
               className="bg-gray-800 p-4 rounded-lg border border-gray-700 hover:border-gray-500 transition-colors cursor-pointer flex flex-col justify-between hover:bg-gray-750"
               onClick={() => onAddToCart(produto)}
             >
-              <h3 className="font-semibold text-sm truncate text-gray-100">{produto.Descricao}</h3>
+              <h3 className="font-semibold text-sm flex-wrap text-gray-100">{produto.Descricao}</h3>
               <p className="text-gray-300 text-sm">R$ {Number(produto.Preco.toFixed(2))}</p>
             </div>
           ))
@@ -111,7 +111,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
           </button>
           
           <span className="px-3 py-2 text-gray-300">
-            Página {currentPage} de {totalPages}
+            Página {currentPage} / {totalPages}
           </span>
           
           <button
