@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { createComanda } from '../lib/api'
+import { useState, useEffect } from 'react'
+import { createComanda, getComandas } from '../lib/api'
 import { useConfig } from '../hooks/useConfig'
 
 export default function ComandaForm({ onComandaSelect, onCancel }) {
@@ -8,12 +8,41 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [existingComanda, setExistingComanda] = useState(null)
+  const [proximoNumero, setProximoNumero] = useState(null)
   const { config } = useConfig()
 
   // Verificar se nome cliente está habilitado
   const nomeClienteHabilitado = config && config["nome cliente"] === 1
   const comandaInicial = config && Number(config["comanda inicial"])
   const mostrarCampoNumero = comandaInicial === 0
+
+  // Calcular próximo número da comanda
+  useEffect(() => {
+    const calcularProximoNumero = async () => {
+      if (!mostrarCampoNumero) {
+        try {
+          const comandas = await getComandas()
+          let proximo
+          
+          if (comandas.length === 0) {
+            // Se não há comandas, usar o valor inicial da configuração
+            proximo = comandaInicial
+          } else {
+            // Se há comandas, usar o maior ID + 1, mas nunca menor que o valor inicial
+            const maiorId = Math.max(...comandas.map(c => c.Idcomanda))
+            proximo = Math.max(maiorId + 1, comandaInicial)
+          }
+          
+          setProximoNumero(proximo)
+        } catch (error) {
+          console.error('Erro ao calcular próximo número:', error)
+          setProximoNumero(comandaInicial)
+        }
+      }
+    }
+
+    calcularProximoNumero()
+  }, [mostrarCampoNumero, comandaInicial])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -139,7 +168,7 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
                 Número da Comanda
               </label>
               <div className="w-full px-4 py-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-300">
-                Será gerado automaticamente: <span className="font-semibold text-blue-400">{comandaInicial}</span>
+                Será gerado automaticamente: <span className="font-semibold text-blue-400">{proximoNumero || '...'}</span>
               </div>
             </div>
           )}
