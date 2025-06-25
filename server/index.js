@@ -230,6 +230,29 @@ app.get('/api/comandas', async (req, res) => {
   }
 });
 
+// Endpoint para carregar configurações
+app.get('/api/config', async (req, res) => {
+  try {
+    const configPath = path.join(DATA_DIR_JSON, '/config.json');
+    const configData = await fs.readFile(configPath, 'utf8');
+    const config = JSON.parse(configData);
+    
+    // Retorna o primeiro item do array de configurações
+    if (Array.isArray(config) && config.length > 0) {
+      res.json(config[0]);
+    } else {
+      res.json(config);
+    }
+  } catch (error) {
+    console.error('Erro ao ler configurações:', error);
+    res.status(500).json({ 
+      error: true, 
+      message: `Erro ao ler configurações: ${error.message}`,
+      details: error.stack
+    });
+  }
+});
+
 app.post('/api/comandas/create', async (req, res) => {
   try {
     const { cliente, operadorId } = req.body;
@@ -246,15 +269,37 @@ app.post('/api/comandas/create', async (req, res) => {
       // Ignorar erro se o diretório já existir
     }
 
-    // Ler comandas existentes para gerar novo ID
+    // Ler configurações para obter comanda inicial
+    const configPath = path.join(DATA_DIR_JSON, '/config.json');
+    const configData = await fs.readFile(configPath, 'utf8');
+    const config = JSON.parse(configData);
+    const configObj = Array.isArray(config) ? config[0] : config;
+    const comandaInicial = configObj["comanda inicial"] || 5001;
+
+    // Ler comandas existentes para verificar duplicatas e gerar novo ID
     const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandas = await readJsonFile(comandasPath);
     
-    // Gerar novo ID de comanda
-    const lastId = comandas.length > 0 
-      ? Math.max(...comandas.map(c => c.Idcomanda))
-      : 0;
-    const newId = lastId + 1;
+    // Verificar se já existe uma comanda com o mesmo nome
+    const comandaExistente = comandas.find(c => c.Cliente === cliente);
+    if (comandaExistente) {
+      return res.status(200).json({
+        exists: true,
+        message: `Já existe uma comanda para ${cliente}`,
+        comanda: comandaExistente
+      });
+    }
+    
+    // Gerar novo ID de comanda baseado na configuração
+    let newId;
+    if (comandas.length === 0) {
+      // Se não há comandas, usar o valor inicial da configuração
+      newId = comandaInicial;
+    } else {
+      // Se há comandas, usar o maior ID + 1
+      const lastId = Math.max(...comandas.map(c => c.Idcomanda));
+      newId = Math.max(lastId + 1, comandaInicial);
+    }
 
     // Criar conteúdo do arquivo .cv no formato: id_da_comanda!nome_da_comanda!entrada_data
     const entradaData = new Date().toLocaleString('pt-BR');
@@ -264,9 +309,19 @@ app.post('/api/comandas/create', async (req, res) => {
     
     await fs.writeFile(cvFilePath, cvContent, 'utf8');
 
+    // Criar objeto da comanda para retornar
+    const novaComanda = {
+      Idcomanda: newId,
+      Cliente: cliente,
+      Entrada: entradaData,
+      saldo: 0,
+      status: 1
+    };
+
     res.status(200).json({
       success: true,
-      message: 'Arquivo .cv criado com sucesso',
+      message: 'Comanda criada com sucesso',
+      comanda: novaComanda,
       comandaId: newId,
       fileName: cvFileName
     });
@@ -369,7 +424,7 @@ app.post('/api/vendas', async (req, res) => {
     await fs.writeFile(comandasPath, JSON.stringify(comandas, null, 2));
 
     // Gerar cupomId sequencial
-    const salesDir = path.join(DATA_DIR_DEFAULT, 'vendas');
+    const salesDir = path.join(__dirname, '../../rivaldo2/Vendas');
     const salesHistoryDir = path.join(DATA_DIR_DEFAULT, 'historico');
     try {
       await fs.mkdir(salesDir, { recursive: true });
@@ -453,23 +508,27 @@ app.get('/api/atendentes', async (req, res) => {
 app.get('/api/vendas/comanda/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(`🔍 Buscando vendas para comanda ID: ${id}`);
 
     // Read produtos.json to get prices
     const produtosPath = path.join(DATA_DIR_JSON, 'produtos.json');
     const produtosContent = await fs.readFile(produtosPath, 'utf-8');
     const produtos = JSON.parse(produtosContent);
 
-    const salesDir = path.join(DATA_DIR_DEFAULT, 'vendas');
+    const salesDir = path.join(__dirname, '../../rivaldo2/Vendas');
     const files = await fs.readdir(salesDir);
+    console.log(`📁 Arquivos encontrados na pasta vendas: ${files.length}`);
     
     // Filter files for this comanda
     const comandaFiles = files.filter(file => 
       file.startsWith(String(id).padStart(5, '0'))
     );
+    console.log(`🎯 Arquivos da comanda ${id}:`, comandaFiles);
 
     // Read and parse each sale file
     const vendasData = await Promise.all(
       comandaFiles.map(async (file) => {
+        console.log(`📄 Processando arquivo: ${file}`);
         const content = await fs.readFile(path.join(salesDir, file), 'utf-8');
         const items = content.split('\n').filter(Boolean).map(line => {
           const [produtoId, descricao, quantidade, atendenteIds] = line.split('!');
@@ -505,14 +564,29 @@ app.get('/api/vendas/comanda/:id', async (req, res) => {
 
         const total = items.reduce((sum, item) => sum + (item.quantidade * item.preco), 0);
 
-        return {
+        // Extrair cupomId do fileName para debug
+        const cupomId = file.split('-')[2]?.split('.')[0] || 'N/A';
+        console.log(`🎫 Cupom ID extraído de ${file}: ${cupomId}`);
+
+        const vendaData = {
           fileName: file,
           items,
-          total
+          total,
+          cupomId: cupomId // Adicionar cupomId explicitamente
         };
+
+        console.log(`✅ Venda processada:`, {
+          fileName: vendaData.fileName,
+          cupomId: vendaData.cupomId,
+          total: vendaData.total,
+          itemsCount: vendaData.items.length
+        });
+
+        return vendaData;
       })
     );
 
+    console.log(`📊 Total de vendas retornadas: ${vendasData.length}`);
     res.status(200).json(vendasData);
   } catch (error) {
     console.error('Error fetching sales:', error);

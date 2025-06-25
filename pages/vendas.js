@@ -3,11 +3,13 @@ import { useRouter } from 'next/router'
 import VendasInterface from '../components/VendasInterface'
 import { getServerUrl } from '../hooks/useServerConfig'
 import { logout } from '../lib/api'
+import { useConfig } from '../hooks/useConfig'
 
 export default function Vendas() {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const { config } = useConfig()
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -41,7 +43,9 @@ export default function Vendas() {
     <div className="min-h-screen bg-gray-900">
       <header className="bg-gray-800 shadow-lg border-b border-gray-700">
         <div className="container mx-auto px-4 py-4 flex flex-col lg:flex-row justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-100">TecBar</h1>
+          <h1 className="text-2xl font-bold text-gray-100">
+            {config && config["nome sala"] ? config["nome sala"] : "TecBar"}
+          </h1>
           <div className="flex items-center gap-4">
             <span className="text-gray-300">
               Operador: {user.Nome}

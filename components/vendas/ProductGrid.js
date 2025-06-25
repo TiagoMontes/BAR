@@ -5,7 +5,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
   const [selectedSetor, setSelectedSetor] = useState('todos')
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(false)
-  const itemsPerPage = isMobile ? 6 : 18
+  const itemsPerPage = isMobile ? 6 : 6
 
   // Detect mobile screen
   useEffect(() => {

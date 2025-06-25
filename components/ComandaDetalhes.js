@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getComanda } from '../lib/api'
 import { useAtendentes } from '../contexts/AtendentesContext'
 import { BluetoothService } from '../services/BluetoothService'
+import { useConfig } from '../hooks/useConfig'
 
 // Comandos ESC/POS para impressoras RP
 const ESC = '\x1B';
@@ -21,6 +22,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
   const [saleStatus, setSaleStatus] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const { atendentes } = useAtendentes()
+  const { config } = useConfig()
 
   const bluetoothService = BluetoothService.getInstance();
 
@@ -35,6 +37,12 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
     }).replace(',', '');
   
     let receipt = `${ALIGN_CENTER}${dateStr}\n`;
+    
+    // Adicionar nome da sala se configurado
+    if (config && config["nome sala"]) {
+      receipt += `${ALIGN_CENTER}${config["nome sala"]}\n`;
+    }
+    
     receipt += `--------------------------------\n`;
     receipt += `${ALIGN_LEFT}Cliente: ${comanda.Cliente}\n`;
     receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
@@ -58,7 +66,16 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
     receipt += `--------------------------------\n`;
     receipt += `Qtde. ${String(totalQuantity).padStart(3, '0')} `;
     receipt += `${DOUBLE_SIZE}${BOLD_ON}Total: ${totalValue.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n\n`;
-    receipt += `${ALIGN_CENTER}TecBar\n\n\n\n`;
+    
+    // Usar nome da casa da configuração ou TecBar como padrão
+    const nomeCasa = config && config["nome sala"] ? config["nome sala"] : "TecBar";
+    const senhaDiaria = config && config["senha diaria"] ? config["senha diaria"] : "";
+    
+    if (senhaDiaria) {
+      receipt += `${ALIGN_CENTER}${nomeCasa} - ${senhaDiaria}\n\n\n\n`;
+    } else {
+      receipt += `${ALIGN_CENTER}${nomeCasa}\n\n\n\n`;
+    }
   
     return receipt;
   };
@@ -97,15 +114,15 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
     receipt += `--------------------------------\n`;
     receipt += `${DOUBLE_SIZE}${BOLD_ON}COMISSAO: R$ ${totalCommission.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n`;
     receipt += `================================\n`;
-    receipt += `${ALIGN_CENTER}TecBar\n\n\n\n`;
+    
+    // Usar nome da casa da configuração ou TecBar como padrão
+    const nomeCasa = config && config["nome sala"] ? config["nome sala"] : "TecBar";
+    receipt += `${ALIGN_CENTER}${nomeCasa}\n\n\n\n`;
   
     return receipt;
   };
 
-  useEffect(() => {
-    const loadVendas = async () => {
-      if (!comanda) return
-
+  useEffect(async() => {
       try {
         setIsLoading(true)
         const vendasData = await getComanda(comanda.Idcomanda)
@@ -116,53 +133,61 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
       } finally {
         setIsLoading(false)
       }
-    }
-
-    if (isOpen) {
-      loadVendas()
-    }
-  }, [comanda, isOpen])
+    
+  }, [])
 
   const handleVendaClick = async (venda) => {
-    const cupomId = venda.fileName.split('-')[2].split('.')[0]
-    const confirmacao = window.confirm(`Deseja reimprimir o cupom de venda & comissão #${cupomId}?`)
+    // Usar o cupomId que está sendo retornado diretamente pelo servidor
+    console.log('🎫 Cupom ID para reimpressão:', venda.cupomId, 'da venda:', venda);
+    
+    const confirmacao = window.confirm(`Deseja reimprimir o cupom de venda & comissão #${venda.cupomId}?`)
     
     if (confirmacao) {
       try {
         setSaleStatus('loading')
         setErrorMessage('')
 
-        // Imprimir cupom de venda
-        const receipt = formatReceipt(venda, comanda, cupomId);
-        await bluetoothService.initialize();
-        await bluetoothService.sendData(receipt);
-
-        // Imprimir cupons de comissão para cada atendente
-        const atendentesComComissao = new Map();
+        // Verificar se a impressão está habilitada na configuração
+        const imprimirHabilitado = config && config.imprimir === 1;
         
-        venda.items.forEach(item => {
-          if (item.comissao > 0 && item.atendentes && item.atendentes.length > 0) {
-            const comissaoPorAtendente = item.comissao / item.atendentes.length;
-            
-            item.atendentes.forEach(atendenteId => {
-              if (!atendentesComComissao.has(atendenteId)) {
-                atendentesComComissao.set(atendenteId, []);
-              }
-              atendentesComComissao.get(atendenteId).push({
-                item,
-                produto: { Id: item.produtoId, Descricao: item.descricao },
-                commissionPerAttendant: comissaoPorAtendente // Comissão dividida igualmente entre os atendentes
-              });
-            });
-          }
-        });
+        if (imprimirHabilitado) {
+          // Imprimir cupom de venda
+          const receipt = formatReceipt(venda, comanda, venda.cupomId);
+          await bluetoothService.initialize();
+          await bluetoothService.sendData(receipt);
 
-        // Imprimir cupom de comissão para cada atendente
-        for (const [atendenteId, commissionItems] of atendentesComComissao) {
-          const atendente = atendentes.find(a => a.id === atendenteId);
-          if (atendente) {
-            const attendantReceipt = formatAttendantReceipt(atendente, commissionItems, comanda, cupomId);
-            await bluetoothService.sendData(attendantReceipt);
+          // Verificar se a comissão está habilitada
+          const comissaoHabilitada = config && config.comissao === 1;
+          
+          if (comissaoHabilitada) {
+            // Imprimir cupons de comissão para cada atendente
+            const atendentesComComissao = new Map();
+            
+            venda.items.forEach(item => {
+              if (item.comissao > 0 && item.atendentes && item.atendentes.length > 0) {
+                const comissaoPorAtendente = item.comissao / item.atendentes.length;
+                
+                item.atendentes.forEach(atendenteId => {
+                  if (!atendentesComComissao.has(atendenteId)) {
+                    atendentesComComissao.set(atendenteId, []);
+                  }
+                  atendentesComComissao.get(atendenteId).push({
+                    item,
+                    produto: { Id: item.produtoId, Descricao: item.descricao },
+                    commissionPerAttendant: comissaoPorAtendente // Comissão dividida igualmente entre os atendentes
+                  });
+                });
+              }
+            });
+
+            // Imprimir cupom de comissão para cada atendente
+            for (const [atendenteId, commissionItems] of atendentesComComissao) {
+              const atendente = atendentes.find(a => a.id === atendenteId);
+              if (atendente) {
+                const attendantReceipt = formatAttendantReceipt(atendente, commissionItems, comanda, venda.cupomId);
+                await bluetoothService.sendData(attendantReceipt);
+              }
+            }
           }
         }
 
@@ -248,8 +273,10 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
             ) : (
               <div className="space-y-4">
                 {vendas.map((venda, index) => {
-                  const cupomId = venda.fileName.split('-')[2].split('.')[0]
-                  const isHighlighted = highlightCupom && String(cupomId) === String(highlightCupom)
+                  // Usar o cupomId que está sendo retornado diretamente pelo servidor
+                  const isHighlighted = highlightCupom && String(venda.cupomId) === String(highlightCupom)
+                  console.log(`🎫 Venda ${index}: cupomId=${venda.cupomId}, fileName=${venda.fileName}`);
+                  
                   return (
                     <div 
                       key={index} 
@@ -260,7 +287,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
                     >
                       <div className="flex justify-between items-center mb-2">
                         <span className={`text-sm ${isHighlighted ? 'text-green-300 font-medium' : 'text-gray-400'}`}>
-                          Cupom: {cupomId}
+                          Cupom: {venda.cupomId}
                         </span>
                         <span className={`font-medium ${isHighlighted ? 'text-green-300' : 'text-gray-100'}`}>
                           R$ {Number(venda.total || 0).toFixed(2)}

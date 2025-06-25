@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { getComandas, deleteComanda } from '../lib/api'
 import ComandaForm from '../components/ComandaForm'
 import ComandaDetalhes from '../components/ComandaDetalhes'
+import { useConfig } from '../hooks/useConfig'
 
 export default function Comandas() {
   const router = useRouter()
@@ -13,6 +14,7 @@ export default function Comandas() {
   const [selectedComanda, setSelectedComanda] = useState(null)
   const [showComandaDetalhes, setShowComandaDetalhes] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const { config } = useConfig()
 
   // Load comandas data
   useEffect(() => {
@@ -80,7 +82,9 @@ export default function Comandas() {
         >
           Vendas
         </button>
-        <h1 className="text-2xl font-bold text-gray-100">Comandas</h1>
+        <h1 className="text-2xl font-bold text-gray-100">
+          {config && config["nome sala"] ? config["nome sala"] : "TecBar"} - Comandas
+        </h1>
         <button
           onClick={() => setShowComandaForm(true)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -135,12 +139,6 @@ export default function Comandas() {
                     className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                   >
                     Detalhes
-                  </button>
-                  <button
-                    onClick={() => handleDeleteComanda(comanda.Idcomanda)}
-                    className="p-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-                  >
-                    Excluir
                   </button>
                 </div>
               </div>

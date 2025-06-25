@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { login } from '../lib/api'
+import { useConfig } from '../hooks/useConfig'
 
 export default function LoginForm({ onLogin, onLogout }) {
   const [username, setUsername] = useState('')
@@ -7,6 +8,7 @@ export default function LoginForm({ onLogin, onLogout }) {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [sessaoAtiva, setSessaoAtiva] = useState(null)
+  const { config } = useConfig()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -63,7 +65,7 @@ export default function LoginForm({ onLogin, onLogout }) {
       <div className="w-full">
         <div>
           <h2 className="text-center text-3xl font-extrabold text-gray-100">
-            TecBar
+            {config && config["nome sala"] ? config["nome sala"] : "TecBar"}
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

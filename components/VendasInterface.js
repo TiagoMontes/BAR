@@ -8,6 +8,7 @@ import AttendantSelector from './vendas/AttendantSelector'
 import PrinterModal from './PrinterModal'
 import Link from 'next/link'
 import { BluetoothService } from '../services/BluetoothService'
+import { useConfig } from '../hooks/useConfig'
 
 // Comandos ESC/POS para impressoras RP
 const ESC = '\x1B';
@@ -91,6 +92,7 @@ export default function VendasInterface({ user }) {
   const [currentAttendantModal, setCurrentAttendantModal] = useState(null)
 
   const bluetoothService = BluetoothService.getInstance();
+  const { config, loading: configLoading } = useConfig();
 
   const handleCloseComanda = async (comandaId) => {
     try {
@@ -225,9 +227,13 @@ export default function VendasInterface({ user }) {
   }
 
   const hasCommissionProducts = () => {
+    // Verificar se a comissão está habilitada na configuração
+    const comissaoHabilitada = config && config.comissao === 1;
+    if (!comissaoHabilitada) return false;
+    
     return cart.some(item => {
       const produto = produtos.find(p => p.Id === item.produtoId)
-      return produto?.Comissao > 0
+      return produto && produto.Comissao > 0
     })
   }
 
@@ -242,6 +248,12 @@ export default function VendasInterface({ user }) {
     }).replace(',', '');
 
     let receipt = `${ALIGN_CENTER}${dateStr}\n`;
+    
+    // Adicionar nome da sala se configurado
+    if (config && config["nome sala"]) {
+      receipt += `${ALIGN_CENTER}${config["nome sala"]}\n`;
+    }
+    
     receipt += `--------------------------------\n`;
     receipt += `${ALIGN_LEFT}Cliente: ${comanda.Cliente}\n`;
     receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
@@ -266,14 +278,23 @@ export default function VendasInterface({ user }) {
 
     receipt += `--------------------------------\n`;
     receipt += `${DOUBLE_SIZE}${BOLD_ON}Qtde.${String(totalQuantity).padStart(3, '0')} \nTotal: ${totalValue.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n\n`;
-    receipt += `${ALIGN_CENTER}TecBar\n\n\n\n`;
+    
+    // Usar nome da casa da configuração ou TecBar como padrão
+    const nomeCasa = config && config["nome sala"] ? config["nome sala"] : "TecBar";
+    const senhaDiaria = config && config["senha diaria"] ? config["senha diaria"] : "";
+    
+    if (senhaDiaria) {
+      receipt += `${ALIGN_CENTER}${nomeCasa} - ${senhaDiaria}\n\n\n\n`;
+    } else {
+      receipt += `${ALIGN_CENTER}${nomeCasa}\n\n\n\n`;
+    }
 
     return receipt;
   };
 
   // Nova função para formatar cupom de atendente
-  const formatAttendantReceipt = (attendantCommission) => {
-    console.log('formatAttendantReceipt chamada com:', attendantCommission);
+  const formatAttendantReceipt = (attendantCommission, cupomId) => {
+    console.log('formatAttendantReceipt chamada com:', attendantCommission, 'cupomId:', cupomId);
     
     // Verificar se o attendant existe
     if (!attendantCommission || !attendantCommission.attendant) {
@@ -297,7 +318,7 @@ export default function VendasInterface({ user }) {
     receipt += `================================\n`;
     receipt += `${DOUBLE_SIZE}${BOLD_ON}${attendant.Apelido} - ${attendant.id}${BOLD_OFF}${NORMAL_SIZE}\n`;
     receipt += `${ALIGN_LEFT}Cliente: ${selectedComanda?.Cliente || 'N/A'}\n`;
-    receipt += `Comanda: ${selectedComanda?.Idcomanda || 'N/A'} - Id Venda: ${lastSaleCupom || 'N/A'}\n`;
+    receipt += `Comanda: ${selectedComanda?.Idcomanda || 'N/A'} - Id Venda: ${cupomId || 'N/A'}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Produtos com Comissao:\n\n`;
 
@@ -312,7 +333,10 @@ export default function VendasInterface({ user }) {
     receipt += `--------------------------------\n`;
     receipt += `${DOUBLE_SIZE}${BOLD_ON}COMISSAO:\nR$ ${totalCommission.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n`;
     receipt += `================================\n`;
-    receipt += `${ALIGN_CENTER}TecBar\n\n\n\n`;
+    
+    // Usar nome da casa da configuração ou TecBar como padrão
+    const nomeCasa = config && config["nome sala"] ? config["nome sala"] : "TecBar";
+    receipt += `${ALIGN_CENTER}${nomeCasa}\n\n\n\n`;
 
     return receipt;
   };
@@ -412,38 +436,49 @@ export default function VendasInterface({ user }) {
         response.cupomId
       );
       
-      // Tenta imprimir o cupom principal
+      // Verificar se a impressão está habilitada na configuração
+      const imprimirHabilitado = config && config.imprimir === 1;
+      
+      // Tenta imprimir o cupom principal apenas se habilitado
       let printSuccess = false;
       let printError = '';
 
-      try {
-        console.log('Iniciando processo de impressão...');
-        await bluetoothService.initialize();
-        console.log('Bluetooth inicializado, enviando dados...');
-        await bluetoothService.sendData(receipt);
-        console.log('Dados enviados com sucesso!');
+      if (imprimirHabilitado) {
+        try {
+          console.log('Iniciando processo de impressão...');
+          await bluetoothService.initialize();
+          console.log('Bluetooth inicializado, enviando dados...');
+          await bluetoothService.sendData(receipt);
+          console.log('Dados enviados com sucesso!');
+          printSuccess = true;
+          setSaleStatus('success');
+          setErrorMessage('');
+        } catch (printErr) {
+          console.error('Erro ao imprimir:', printErr);
+          printError = printErr.message || 'Erro desconhecido na impressão';
+          setSaleStatus('warning');
+          
+          // Mensagens de erro mais específicas
+          if (printError.includes('not initialized') || printError.includes('not connected')) {
+            setErrorMessage(`Venda realizada com sucesso! Porém, a impressora não está conectada. Clique em "Configurar Impressora" para conectar.`);
+          } else if (printError.includes('No device')) {
+            setErrorMessage(`Venda realizada com sucesso! Porém, nenhuma impressora foi encontrada. Verifique se a impressora está ligada e pareada.`);
+          } else if (printError.includes('writing characteristic failed')) {
+            setErrorMessage(`Venda realizada com sucesso! Porém, falha na comunicação com a impressora. Tente reconectar a impressora.`);
+          } else {
+            setErrorMessage(`Venda realizada com sucesso! Porém, erro na impressão: ${printError}. Verifique a conexão da impressora.`);
+          }
+        }
+      } else {
+        // Impressão desabilitada, apenas mostrar sucesso
         printSuccess = true;
         setSaleStatus('success');
         setErrorMessage('');
-      } catch (printErr) {
-        console.error('Erro ao imprimir:', printErr);
-        printError = printErr.message || 'Erro desconhecido na impressão';
-        setSaleStatus('warning');
-        
-        // Mensagens de erro mais específicas
-        if (printError.includes('not initialized') || printError.includes('not connected')) {
-          setErrorMessage(`Venda realizada com sucesso! Porém, a impressora não está conectada. Clique em "Configurar Impressora" para conectar.`);
-        } else if (printError.includes('No device')) {
-          setErrorMessage(`Venda realizada com sucesso! Porém, nenhuma impressora foi encontrada. Verifique se a impressora está ligada e pareada.`);
-        } else if (printError.includes('writing characteristic failed')) {
-          setErrorMessage(`Venda realizada com sucesso! Porém, falha na comunicação com a impressora. Tente reconectar a impressora.`);
-        } else {
-          setErrorMessage(`Venda realizada com sucesso! Porém, erro na impressão: ${printError}. Verifique a conexão da impressora.`);
-        }
       }
 
-      // Preparar cupons de atendente se houver produtos com comissão
-      if (selectedAtendentes.length > 0) {
+      // Preparar cupons de atendente se houver produtos com comissão E comissão estiver habilitada
+      const comissaoHabilitada = config && config.comissao === 1;
+      if (selectedAtendentes.length > 0 && comissaoHabilitada) {
         const attendantCommissions = calculateAttendantCommissions();
         console.log('Comissões calculadas:', attendantCommissions);
         
@@ -460,7 +495,7 @@ export default function VendasInterface({ user }) {
             return {
               attendant: commission.attendant,
               commissionValue: commission.totalCommission,
-              receipt: formatAttendantReceipt(commission)
+              receipt: formatAttendantReceipt(commission, response.cupomId)
             };
           }).filter(modal => modal !== null); // Remover modais inválidos
           
@@ -475,7 +510,7 @@ export default function VendasInterface({ user }) {
       setLastSaleCupom(response.cupomId)
 
       // Se a impressão falhou, oferece opções ao usuário
-      if (!printSuccess) {
+      if (!printSuccess && imprimirHabilitado) {
         setTimeout(() => {
           const shouldRetry = window.confirm(
             'Venda realizada com sucesso, mas houve erro na impressão.\n\n' +
@@ -679,36 +714,37 @@ export default function VendasInterface({ user }) {
             />
           </div>
 
-                {/* Status da impressora */}
-          <div className="mb-4 flex items-center justify-between lg:hidden">
-            <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${
-                printerStatus.includes('conectada') ? 'bg-green-500' : 'bg-red-500'
-              }`}></div>
-              <span className="text-sm text-gray-300">{printerStatus}</span>
-            </div>
-            <button
-              onClick={handlePrinterSetup}
-              className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
-              title="Configurar Impressora"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          {/* Status da impressora */}
+          {config && config.imprimir !== 0 && (
+            <div className="mb-4 flex items-center justify-between lg:hidden">
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${
+                  printerStatus.includes('conectada') ? 'bg-green-500' : 'bg-red-500'
+                }`}></div>
+                <span className="text-sm text-gray-300">{printerStatus}</span>
+              </div>
+              <button
+                onClick={handlePrinterSetup}
+                className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
+                title="Configurar Impressora"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                />
-              </svg>
-            </button>
-          </div>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
 
-        
           <button
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden lg:block"
             disabled={cart.length === 0 || isProcessingSale}
@@ -716,7 +752,7 @@ export default function VendasInterface({ user }) {
           >
             {isProcessingSale ? 'Processando...' : 'Finalizar Venda'}
           </button>
-            
+          
         </div>
       </div>
 
