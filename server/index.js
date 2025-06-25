@@ -257,8 +257,8 @@ app.post('/api/comandas/create', async (req, res) => {
   try {
     const { cliente, operadorId } = req.body;
 
-    if (!cliente || !operadorId) {
-      return res.status(400).json({ message: 'Nome do cliente e operadorId são obrigatórios' });
+    if (!operadorId) {
+      return res.status(400).json({ message: 'operadorId são obrigatórios' });
     }
 
     // Criar pasta Comandas se não existir
@@ -292,13 +292,24 @@ app.post('/api/comandas/create', async (req, res) => {
     
     // Gerar novo ID de comanda baseado na configuração
     let newId;
-    if (comandas.length === 0) {
-      // Se não há comandas, usar o valor inicial da configuração
-      newId = comandaInicial;
+    if (comandaInicial === 0) {
+      // Se comanda inicial é 0, usar o maior ID + 1
+      if (comandas.length === 0) {
+        newId = 1;
+      } else {
+        const lastId = Math.max(...comandas.map(c => c.Idcomanda));
+        newId = lastId + 1;
+      }
     } else {
-      // Se há comandas, usar o maior ID + 1
-      const lastId = Math.max(...comandas.map(c => c.Idcomanda));
-      newId = Math.max(lastId + 1, comandaInicial);
+      // Se comanda inicial > 0, usar o valor da configuração ou maior
+      if (comandas.length === 0) {
+        // Se não há comandas, usar o valor inicial da configuração
+        newId = comandaInicial;
+      } else {
+        // Se há comandas, usar o maior entre (maior ID + 1) e comanda inicial
+        const lastId = Math.max(...comandas.map(c => c.Idcomanda));
+        newId = Math.max(lastId + 1, comandaInicial);
+      }
     }
 
     // Criar conteúdo do arquivo .cv no formato: id_da_comanda!nome_da_comanda!entrada_data
@@ -433,21 +444,50 @@ app.post('/api/vendas', async (req, res) => {
       // Ignorar erro se o diretório já existir
     }
 
+    // Ler configurações para obter cupom inicial
+    const configPath = path.join(DATA_DIR_JSON, '/config.json');
+    const configData = await fs.readFile(configPath, 'utf8');
+    const config = JSON.parse(configData);
+    const configObj = Array.isArray(config) ? config[0] : config;
+    const cupomInicial = configObj["cupom inicial"] || 5001;
+
     // Obter todos os arquivos de cupom existentes
     const files = await fs.readdir(salesDir);
     const cupomFiles = files.filter(file => file.endsWith('.cv'));
     
-    // Encontrar o maior cupomId
-    let highestCupomId = 0;
-    cupomFiles.forEach(file => {
-      const cupomId = parseInt(file.split('-')[2].split('.')[0]);
-      if (cupomId > highestCupomId) {
-        highestCupomId = cupomId;
+    // Gerar cupomId baseado na configuração
+    let cupomId;
+    if (cupomInicial === 0) {
+      // Se cupom inicial é 0, usar o maior cupomId + 1
+      if (cupomFiles.length === 0) {
+        cupomId = 1;
+      } else {
+        let highestCupomId = 0;
+        cupomFiles.forEach(file => {
+          const fileCupomId = parseInt(file.split('-')[2].split('.')[0]);
+          if (fileCupomId > highestCupomId) {
+            highestCupomId = fileCupomId;
+          }
+        });
+        cupomId = highestCupomId + 1;
       }
-    });
-
-    // Gerar novo cupomId (incrementar em 1)
-    const cupomId = highestCupomId + 1;
+    } else {
+      // Se cupom inicial > 0, usar o valor da configuração ou maior
+      if (cupomFiles.length === 0) {
+        // Se não há cupons, usar o valor inicial da configuração
+        cupomId = cupomInicial;
+      } else {
+        // Se há cupons, usar o maior entre (maior cupomId + 1) e cupom inicial
+        let highestCupomId = 0;
+        cupomFiles.forEach(file => {
+          const fileCupomId = parseInt(file.split('-')[2].split('.')[0]);
+          if (fileCupomId > highestCupomId) {
+            highestCupomId = fileCupomId;
+          }
+        });
+        cupomId = Math.max(highestCupomId + 1, cupomInicial);
+      }
+    }
 
     // Criar arquivo de venda
     const saleContent = items.map(item => {

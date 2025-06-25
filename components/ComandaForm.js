@@ -12,6 +12,8 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
 
   // Verificar se nome cliente está habilitado
   const nomeClienteHabilitado = config && config["nome cliente"] === 1
+  const comandaInicial = config && Number(config["comanda inicial"])
+  const mostrarCampoNumero = comandaInicial === 0
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -24,8 +26,7 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
       setIsLoading(false)
       return
     }
-    
-    if (!numero.trim()) {
+    if (mostrarCampoNumero && !numero.trim()) {
       setError('Número da comanda é obrigatório')
       setIsLoading(false)
       return
@@ -34,17 +35,17 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
     const userData = localStorage.getItem('user')
     try {
       const user = JSON.parse(userData)
-      
-      // Construir nome da comanda baseado na configuração
       let nomeComanda
-      if (nomeClienteHabilitado) {
+      if (nomeClienteHabilitado && mostrarCampoNumero) {
         nomeComanda = `${cliente.trim()} - ${numero.trim()}`
-      } else {
+      } else if (nomeClienteHabilitado) {
+        nomeComanda = cliente.trim()
+      } else if (mostrarCampoNumero) {
         nomeComanda = numero.trim()
+      } else {
+        nomeComanda = '' // será ignorado pelo backend
       }
-      
       const response = await createComanda(nomeComanda, user["Id operador"])
-      
       if (response.exists) {
         setExistingComanda(response.comanda)
         setError(response.message)
@@ -71,7 +72,6 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
   return (
     <div className="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
       <h2 className="text-xl font-semibold mb-4 text-gray-100">Nova Comanda</h2>
-      
       {existingComanda ? (
         <div className="space-y-4">
           <div className="bg-yellow-900 p-4 rounded-lg border border-yellow-700">
@@ -118,26 +118,34 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
               />
             </div>
           )}
-          
-          <div>
-            <label htmlFor="numero" className="block text-sm font-medium text-gray-300 mb-2">
-              Número da Comanda
-            </label>
-            <input
-              type="text"
-              id="numero"
-              value={numero}
-              onChange={(e) => setNumero(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
-              placeholder={nomeClienteHabilitado ? "Ex: 001, 002..." : "Ex: 001, 002..."}
-              required
-            />
-          </div>
-
+          {mostrarCampoNumero ? (
+            <div>
+              <label htmlFor="numero" className="block text-sm font-medium text-gray-300 mb-2">
+                Número da Comanda
+              </label>
+              <input
+                type="text"
+                id="numero"
+                value={numero}
+                onChange={(e) => setNumero(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
+                placeholder={nomeClienteHabilitado ? "Ex: 001, 002..." : "Ex: 001, 002..."}
+                required={mostrarCampoNumero}
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Número da Comanda
+              </label>
+              <div className="w-full px-4 py-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-300">
+                Será gerado automaticamente: <span className="font-semibold text-blue-400">{comandaInicial}</span>
+              </div>
+            </div>
+          )}
           {error && (
             <div className="text-red-400 text-sm">{error}</div>
           )}
-
           <div className="flex space-x-4">
             <button
               type="button"
@@ -148,7 +156,7 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
             </button>
             <button
               type="submit"
-              disabled={isLoading || !numero.trim() || (nomeClienteHabilitado && !cliente.trim())}
+              disabled={isLoading || (mostrarCampoNumero && !numero.trim()) || (nomeClienteHabilitado && !cliente.trim())}
               className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Verificando...' : 'Criar'}
