@@ -50,13 +50,13 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
       totalQuantity += item.quantidade;
       totalValue += itemTotal;
   
-      receipt += `# ${String(item.produtoId).padStart(3, '0')} `;
+      receipt += `${String(item.produtoId).padStart(3, '0')} `;
       receipt += `${DOUBLE_SIZE}${BOLD_ON}${item.descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
-      receipt += `## ${item.preco.toFixed(2)} x ${String(item.quantidade).padStart(3, '0')} = ${itemTotal.toFixed(2)}\n\n`;
+      receipt += `${item.preco.toFixed(2)} x ${String(item.quantidade).padStart(3, '0')} = ${itemTotal.toFixed(2)}\n\n`;
     });
   
     receipt += `--------------------------------\n`;
-    receipt += `# Qtde. ${String(totalQuantity).padStart(3, '0')} `;
+    receipt += `Qtde. ${String(totalQuantity).padStart(3, '0')} `;
     receipt += `${DOUBLE_SIZE}${BOLD_ON}Total: ${totalValue.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n\n`;
     receipt += `${ALIGN_CENTER}TecBar\n\n\n\n`;
   
@@ -89,9 +89,9 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
       const itemCommissionTotal = commissionPerAttendant * item.quantidade;
       totalCommission += itemCommissionTotal;
   
-      receipt += `# ${String(produto.Id).padStart(3, '0')} ${produto.Descricao}\n`;
-      receipt += `## Qtde: ${item.quantidade} - Comissao: R$ ${commissionPerAttendant.toFixed(2)}\n`;
-      receipt += `## Total: R$ ${itemCommissionTotal.toFixed(2)}\n\n`;
+      receipt += `${String(produto.Id).padStart(3, '0')} ${produto.Descricao}\n`;
+      receipt += `Qtde: ${item.quantidade} - Comissao: R$ ${commissionPerAttendant.toFixed(2)}\n`;
+      receipt += `Total: R$ ${itemCommissionTotal.toFixed(2)}\n\n`;
     });
   
     receipt += `--------------------------------\n`;

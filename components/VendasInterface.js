@@ -304,9 +304,9 @@ export default function VendasInterface({ user }) {
     items.forEach(({ item, produto, commissionPerAttendant }) => {
       const itemCommissionTotal = commissionPerAttendant * item.quantidade;
 
-      receipt += `# ${DOUBLE_SIZE}${BOLD_ON}${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
-      receipt += `## Qtde: ${item.quantidade} - Comissao: R$ ${commissionPerAttendant.toFixed(2)}\n`;
-      receipt += `## Total: R$ ${itemCommissionTotal.toFixed(2)}\n\n`;
+      receipt += `${DOUBLE_SIZE}${BOLD_ON}${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
+      receipt += `Qtde: ${item.quantidade} - Comissao: R$ ${commissionPerAttendant.toFixed(2)}\n`;
+      receipt += `Total: R$ ${itemCommissionTotal.toFixed(2)}\n\n`;
     });
     
     receipt += `--------------------------------\n`;
