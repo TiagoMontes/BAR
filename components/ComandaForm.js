@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { createComanda, getComandas } from '../lib/api'
 import { useConfig } from '../hooks/useConfig'
 
-export default function ComandaForm({ onComandaSelect, onCancel }) {
+export default function ComandaForm({ onComandaSelect, onCancel, onComandaCreated }) {
   const [cliente, setCliente] = useState('')
   const [numero, setNumero] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -48,7 +48,7 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
     e.preventDefault()
     setError('')
     setIsLoading(true)
-    
+
     // Validar campos obrigatórios
     if (nomeClienteHabilitado && !cliente.trim()) {
       setError('Nome do cliente é obrigatório')
@@ -82,6 +82,10 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
         onComandaSelect(response.comanda)
         setCliente('')
         setNumero('')
+        // Atualizar a listagem de comandas
+        if (onComandaCreated) {
+          onComandaCreated()
+        }
       }
     } catch (err) {
       setError('Erro ao verificar/criar comanda')
@@ -110,9 +114,9 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
             <p className="text-yellow-200 mt-2">
               ID: {existingComanda.Idcomanda} | Saldo: R$ {existingComanda.saldo.toFixed(2)}
             </p>
-          </div>  
+          </div>
           <div className="flex space-x-4">
-            <button
+          <button
               onClick={() => {
                 setExistingComanda(null)
                 setError('')
@@ -132,17 +136,17 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           {nomeClienteHabilitado && (
-            <div>
+          <div>
               <label htmlFor="cliente" className="block text-sm font-medium text-gray-300 mb-2">
                 Nome do Cliente
               </label>
-              <input
-                type="text"
-                id="cliente"
-                value={cliente}
-                onChange={(e) => setCliente(e.target.value)}
+            <input
+              type="text"
+              id="cliente"
+              value={cliente}
+              onChange={(e) => setCliente(e.target.value)}
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
-                placeholder="Digite o nome do cliente"
+              placeholder="Digite o nome do cliente"
                 required={nomeClienteHabilitado}
               />
             </div>
@@ -160,8 +164,8 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
                 placeholder={nomeClienteHabilitado ? "Ex: 001, 002..." : "Ex: 001, 002..."}
                 required={mostrarCampoNumero}
-              />
-            </div>
+            />
+          </div>
           ) : (
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -176,7 +180,7 @@ export default function ComandaForm({ onComandaSelect, onCancel }) {
             <div className="text-red-400 text-sm">{error}</div>
           )}
           <div className="flex space-x-4">
-            <button
+          <button
               type="button"
               onClick={onCancel}
               className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"

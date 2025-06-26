@@ -122,7 +122,10 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
     return receipt;
   };
 
-  useEffect(async() => {
+  useEffect(() => {
+    const loadVendas = async () => {
+      if (!comanda) return
+
       try {
         setIsLoading(true)
         const vendasData = await getComanda(comanda.Idcomanda)
@@ -130,11 +133,15 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
       } catch (err) {
         console.error('Error loading sales:', err)
         setError(err.message || 'Erro ao carregar histórico de vendas')
-      } finally {
+        } finally {
         setIsLoading(false)
       }
-    
-  }, [])
+    }
+
+    if (isOpen) {
+      loadVendas()
+    }
+  }, [comanda, isOpen])
 
   const handleVendaClick = async (venda) => {
     // Usar o cupomId que está sendo retornado diretamente pelo servidor

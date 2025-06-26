@@ -277,7 +277,7 @@ app.post('/api/comandas/create', async (req, res) => {
     const comandaInicial = configObj["comanda inicial"] || 5001;
 
     // Ler comandas existentes para verificar duplicatas e gerar novo ID
-    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, '/comandas.json');
     const comandas = await readJsonFile(comandasPath);
     
     // Verificar se já existe uma comanda com o mesmo nome
@@ -351,7 +351,7 @@ app.post('/api/comandas/remove', async (req, res) => {
     }
 
     // Ler o arquivo de comandas
-    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, '/comandas.json');
     const comandasData = await fs.readFile(comandasPath, 'utf8');
     const comandas = JSON.parse(comandasData);
 
@@ -375,7 +375,7 @@ app.post('/api/comandas/close', async (req, res) => {
       return res.status(400).json({ message: 'O ID da comanda é obrigatório.' });
     }
 
-    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, '/comandas.json');
     const comandas = await readJsonFile(comandasPath);
     
     const comandaIndex = comandas.findIndex(c => c.Idcomanda === comandaId);
@@ -406,7 +406,7 @@ app.post('/api/vendas', async (req, res) => {
     }
 
     // Ler comandas existentes
-    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, '/comandas.json');
     const comandasData = await fs.readFile(comandasPath, 'utf8');
     const comandas = JSON.parse(comandasData);
 
@@ -417,9 +417,9 @@ app.post('/api/vendas', async (req, res) => {
     }
 
     // Ler produtos para calcular o valor total
-    const produtosPath = path.join(DATA_DIR_JSON, 'produtos.json');
-    const produtosData = await fs.readFile(produtosPath, 'utf8');
-    const produtos = JSON.parse(produtosData);
+    const produtosPath = path.join(__dirname, 'produtos.json');
+    const produtosContent = await fs.readFile(produtosPath, 'utf-8');
+    const produtos = JSON.parse(produtosContent);
 
     // Calcular valor total da venda
     const valorTotal = items.reduce((total, item) => {
@@ -435,7 +435,7 @@ app.post('/api/vendas', async (req, res) => {
     await fs.writeFile(comandasPath, JSON.stringify(comandas, null, 2));
 
     // Gerar cupomId sequencial
-    const salesDir = path.join(__dirname, '../../rivaldo2/Vendas');
+    const salesDir = path.join(DATA_DIR_DEFAULT, 'Vendas');
     const salesHistoryDir = path.join(DATA_DIR_DEFAULT, 'historico');
     try {
       await fs.mkdir(salesDir, { recursive: true });
@@ -520,7 +520,7 @@ app.post('/api/vendas', async (req, res) => {
 // Adicionar após as outras rotas e antes do catch-all route
 app.get('/api/atendentes', async (req, res) => {
   try {
-    const atendentesPath = path.join(DATA_DIR_JSON, 'atendentes.json');
+    const atendentesPath = path.join(DATA_DIR_JSON, '/atendentes.json');
     const atendentes = await readJsonFile(atendentesPath);
     
     // Validar estrutura dos dados
@@ -551,25 +551,26 @@ app.get('/api/vendas/comanda/:id', async (req, res) => {
     console.log(`🔍 Buscando vendas para comanda ID: ${id}`);
 
     // Read produtos.json to get prices
-    const produtosPath = path.join(DATA_DIR_JSON, 'produtos.json');
+    const produtosPath = path.join(DATA_DIR_JSON, '/produtos.json');
     const produtosContent = await fs.readFile(produtosPath, 'utf-8');
     const produtos = JSON.parse(produtosContent);
 
-    const salesDir = path.join(__dirname, '../../rivaldo2/Vendas');
-    const files = await fs.readdir(salesDir);
-    console.log(`📁 Arquivos encontrados na pasta vendas: ${files.length}`);
+    // Mudança: usar a pasta historico em vez da pasta Vendas
+    const historicoDir = path.join(DATA_DIR_DEFAULT, 'historico');
+    const files = await fs.readdir(historicoDir);
+    console.log(`📁 Arquivos encontrados na pasta historico: ${files.length}`);
     
     // Filter files for this comanda
     const comandaFiles = files.filter(file => 
       file.startsWith(String(id).padStart(5, '0'))
     );
-    console.log(`🎯 Arquivos da comanda ${id}:`, comandaFiles);
+    console.log(`🎯 Arquivos da comanda ${id} no historico:`, comandaFiles);
 
-    // Read and parse each sale file
+    // Read and parse each sale file from historico
     const vendasData = await Promise.all(
       comandaFiles.map(async (file) => {
-        console.log(`📄 Processando arquivo: ${file}`);
-        const content = await fs.readFile(path.join(salesDir, file), 'utf-8');
+        console.log(`📄 Processando arquivo do historico: ${file}`);
+        const content = await fs.readFile(path.join(historicoDir, file), 'utf-8');
         const items = content.split('\n').filter(Boolean).map(line => {
           const [produtoId, descricao, quantidade, atendenteIds] = line.split('!');
           const produto = produtos.find(p => p.Id === Number(produtoId));
@@ -615,7 +616,7 @@ app.get('/api/vendas/comanda/:id', async (req, res) => {
           cupomId: cupomId // Adicionar cupomId explicitamente
         };
 
-        console.log(`✅ Venda processada:`, {
+        console.log(`✅ Venda processada do historico:`, {
           fileName: vendaData.fileName,
           cupomId: vendaData.cupomId,
           total: vendaData.total,
@@ -626,13 +627,13 @@ app.get('/api/vendas/comanda/:id', async (req, res) => {
       })
     );
 
-    console.log(`📊 Total de vendas retornadas: ${vendasData.length}`);
+    console.log(`📊 Total de vendas retornadas do historico: ${vendasData.length}`);
     res.status(200).json(vendasData);
   } catch (error) {
-    console.error('Error fetching sales:', error);
+    console.error('Error fetching sales from historico:', error);
     res.status(500).json({ 
       error: true, 
-      message: 'Error fetching sales data',
+      message: 'Error fetching sales data from historico',
       details: error.message 
     });
   }

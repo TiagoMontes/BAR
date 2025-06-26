@@ -329,7 +329,7 @@ export default function VendasInterface({ user }) {
       receipt += `Qtde: ${item.quantidade} - Comissao: R$ ${commissionPerAttendant.toFixed(2)}\n`;
       receipt += `Total: R$ ${itemCommissionTotal.toFixed(2)}\n\n`;
     });
-    
+
     receipt += `--------------------------------\n`;
     receipt += `${DOUBLE_SIZE}${BOLD_ON}COMISSAO:\nR$ ${totalCommission.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n`;
     receipt += `================================\n`;
@@ -444,31 +444,31 @@ export default function VendasInterface({ user }) {
       let printError = '';
 
       if (imprimirHabilitado) {
-        try {
-          console.log('Iniciando processo de impressão...');
-          await bluetoothService.initialize();
-          console.log('Bluetooth inicializado, enviando dados...');
-          await bluetoothService.sendData(receipt);
-          console.log('Dados enviados com sucesso!');
-          printSuccess = true;
-          setSaleStatus('success');
-          setErrorMessage('');
-        } catch (printErr) {
-          console.error('Erro ao imprimir:', printErr);
-          printError = printErr.message || 'Erro desconhecido na impressão';
-          setSaleStatus('warning');
-          
-          // Mensagens de erro mais específicas
-          if (printError.includes('not initialized') || printError.includes('not connected')) {
-            setErrorMessage(`Venda realizada com sucesso! Porém, a impressora não está conectada. Clique em "Configurar Impressora" para conectar.`);
-          } else if (printError.includes('No device')) {
-            setErrorMessage(`Venda realizada com sucesso! Porém, nenhuma impressora foi encontrada. Verifique se a impressora está ligada e pareada.`);
-          } else if (printError.includes('writing characteristic failed')) {
-            setErrorMessage(`Venda realizada com sucesso! Porém, falha na comunicação com a impressora. Tente reconectar a impressora.`);
-          } else {
-            setErrorMessage(`Venda realizada com sucesso! Porém, erro na impressão: ${printError}. Verifique a conexão da impressora.`);
-          }
+      try {
+        console.log('Iniciando processo de impressão...');
+        await bluetoothService.initialize();
+        console.log('Bluetooth inicializado, enviando dados...');
+        await bluetoothService.sendData(receipt);
+        console.log('Dados enviados com sucesso!');
+        printSuccess = true;
+        setSaleStatus('success');
+        setErrorMessage('');
+      } catch (printErr) {
+        console.error('Erro ao imprimir:', printErr);
+        printError = printErr.message || 'Erro desconhecido na impressão';
+        setSaleStatus('warning');
+        
+        // Mensagens de erro mais específicas
+        if (printError.includes('not initialized') || printError.includes('not connected')) {
+          setErrorMessage(`Venda realizada com sucesso! Porém, a impressora não está conectada. Clique em "Configurar Impressora" para conectar.`);
+        } else if (printError.includes('No device')) {
+          setErrorMessage(`Venda realizada com sucesso! Porém, nenhuma impressora foi encontrada. Verifique se a impressora está ligada e pareada.`);
+        } else if (printError.includes('writing characteristic failed')) {
+          setErrorMessage(`Venda realizada com sucesso! Porém, falha na comunicação com a impressora. Tente reconectar a impressora.`);
+        } else {
+          setErrorMessage(`Venda realizada com sucesso! Porém, erro na impressão: ${printError}. Verifique a conexão da impressora.`);
         }
+      }
       } else {
         // Impressão desabilitada, apenas mostrar sucesso
         printSuccess = true;
@@ -493,8 +493,8 @@ export default function VendasInterface({ user }) {
             }
             
             return {
-              attendant: commission.attendant,
-              commissionValue: commission.totalCommission,
+            attendant: commission.attendant,
+            commissionValue: commission.totalCommission,
               receipt: formatAttendantReceipt(commission, response.cupomId)
             };
           }).filter(modal => modal !== null); // Remover modais inválidos
@@ -744,7 +744,7 @@ export default function VendasInterface({ user }) {
               </button>
             </div>
           )}
-
+        
           <button
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden lg:block"
             disabled={cart.length === 0 || isProcessingSale}
@@ -752,7 +752,7 @@ export default function VendasInterface({ user }) {
           >
             {isProcessingSale ? 'Processando...' : 'Finalizar Venda'}
           </button>
-          
+            
         </div>
       </div>
 

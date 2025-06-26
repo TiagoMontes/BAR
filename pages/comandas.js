@@ -49,6 +49,15 @@ export default function Comandas() {
     }
   }
 
+  const handleComandaCreated = async () => {
+    try {
+      const updatedComandas = await getComandas()
+      setComandas(updatedComandas)
+    } catch (err) {
+      setError('Erro ao atualizar listagem')
+    }
+  }
+
   const handleDeleteComanda = async (comandaId) => {
     if (!confirm('Tem certeza que deseja excluir esta comanda?')) {
       return
@@ -156,6 +165,7 @@ export default function Comandas() {
           <ComandaForm
             onComandaSelect={handleCreateComanda}
             onCancel={() => setShowComandaForm(false)}
+            onComandaCreated={handleComandaCreated}
           />
         </div>
       )}
