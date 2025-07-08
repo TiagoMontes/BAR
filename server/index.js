@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3001;
 
 // Define the data directory path (parent directory)
 const DATA_DIR_DEFAULT = path.join(__dirname, '../../');
-const DATA_DIR_JSON = path.join(__dirname, '../../JSon');
+const DATA_DIR_JSON = path.join(__dirname, '../../JSon/');
 
 // Middleware
 app.use(cors());
@@ -233,7 +233,7 @@ app.get('/api/comandas', async (req, res) => {
 // Endpoint para carregar configurações
 app.get('/api/config', async (req, res) => {
   try {
-    const configPath = path.join(DATA_DIR_JSON, '/config.json');
+    const configPath = path.join(DATA_DIR_JSON, 'config.json');
     const configData = await fs.readFile(configPath, 'utf8');
     const config = JSON.parse(configData);
     
@@ -270,14 +270,14 @@ app.post('/api/comandas/create', async (req, res) => {
     }
 
     // Ler configurações para obter comanda inicial
-    const configPath = path.join(DATA_DIR_JSON, '/config.json');
+    const configPath = path.join(DATA_DIR_JSON, 'config.json');
     const configData = await fs.readFile(configPath, 'utf8');
     const config = JSON.parse(configData);
     const configObj = Array.isArray(config) ? config[0] : config;
     const comandaInicial = configObj["comanda inicial"] || 5001;
 
     // Ler comandas existentes para verificar duplicatas e gerar novo ID
-    const comandasPath = path.join(DATA_DIR_JSON, '/comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandas = await readJsonFile(comandasPath);
     
     // Verificar se já existe uma comanda com o mesmo nome
@@ -351,7 +351,7 @@ app.post('/api/comandas/remove', async (req, res) => {
     }
 
     // Ler o arquivo de comandas
-    const comandasPath = path.join(DATA_DIR_JSON, '/comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandasData = await fs.readFile(comandasPath, 'utf8');
     const comandas = JSON.parse(comandasData);
 
@@ -375,7 +375,7 @@ app.post('/api/comandas/close', async (req, res) => {
       return res.status(400).json({ message: 'O ID da comanda é obrigatório.' });
     }
 
-    const comandasPath = path.join(DATA_DIR_JSON, '/comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandas = await readJsonFile(comandasPath);
     
     const comandaIndex = comandas.findIndex(c => c.Idcomanda === comandaId);
@@ -406,7 +406,7 @@ app.post('/api/vendas', async (req, res) => {
     }
 
     // Ler comandas existentes
-    const comandasPath = path.join(DATA_DIR_JSON, '/comandas.json');
+    const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandasData = await fs.readFile(comandasPath, 'utf8');
     const comandas = JSON.parse(comandasData);
 
@@ -417,7 +417,7 @@ app.post('/api/vendas', async (req, res) => {
     }
 
     // Ler produtos para calcular o valor total
-    const produtosPath = path.join(__dirname, 'produtos.json');
+    const produtosPath = path.join(DATA_DIR_JSON, 'produtos.json');
     const produtosContent = await fs.readFile(produtosPath, 'utf-8');
     const produtos = JSON.parse(produtosContent);
 
@@ -445,7 +445,7 @@ app.post('/api/vendas', async (req, res) => {
     }
 
     // Ler configurações para obter cupom inicial
-    const configPath = path.join(DATA_DIR_JSON, '/config.json');
+    const configPath = path.join(DATA_DIR_JSON, 'config.json');
     const configData = await fs.readFile(configPath, 'utf8');
     const config = JSON.parse(configData);
     const configObj = Array.isArray(config) ? config[0] : config;
@@ -520,7 +520,7 @@ app.post('/api/vendas', async (req, res) => {
 // Adicionar após as outras rotas e antes do catch-all route
 app.get('/api/atendentes', async (req, res) => {
   try {
-    const atendentesPath = path.join(DATA_DIR_JSON, '/atendentes.json');
+    const atendentesPath = path.join(DATA_DIR_JSON, 'atendentes.json');
     const atendentes = await readJsonFile(atendentesPath);
     
     // Validar estrutura dos dados
@@ -551,7 +551,7 @@ app.get('/api/vendas/comanda/:id', async (req, res) => {
     console.log(`🔍 Buscando vendas para comanda ID: ${id}`);
 
     // Read produtos.json to get prices
-    const produtosPath = path.join(DATA_DIR_JSON, '/produtos.json');
+    const produtosPath = path.join(DATA_DIR_JSON, 'produtos.json');
     const produtosContent = await fs.readFile(produtosPath, 'utf-8');
     const produtos = JSON.parse(produtosContent);
 
