@@ -204,6 +204,7 @@ app.get('/api/produtos', async (req, res) => {
       return 0;
     });
 
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.json(produtosOrdenados);
   } catch (error) {
     console.error('Erro ao ler produtos:', error);
