@@ -16,7 +16,10 @@ export default function LoginForm({ onLogin, onLogout }) {
     setIsLoading(true)
 
     try {
-      const response = await login(username, password)
+      // Remove espaços em branco do username
+      const cleanUsername = username.trim()
+      
+      const response = await login(cleanUsername, password)
       console.log(response)
 
       if (response.sessaoAtiva) {
