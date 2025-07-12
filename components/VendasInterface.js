@@ -9,6 +9,7 @@ import PrinterModal from './PrinterModal'
 import Link from 'next/link'
 import { BluetoothService } from '../services/BluetoothService'
 import { useConfig } from '../hooks/useConfig'
+import { removeAccents } from '../lib/utils'
 
 // Comandos ESC/POS para impressoras RP
 const ESC = '\x1B';
@@ -251,14 +252,14 @@ export default function VendasInterface({ user }) {
     
     // Adicionar nome da sala se configurado
     if (config && config["nome sala"]) {
-      receipt += `${ALIGN_CENTER}${config["nome sala"]}\n`;
+      receipt += `${ALIGN_CENTER}${removeAccents(config["nome sala"])}\n`;
     }
     
     receipt += `--------------------------------\n`;
-    receipt += `${ALIGN_LEFT}Cliente: ${comanda.Cliente}\n`;
+    receipt += `${ALIGN_LEFT}Cliente: ${removeAccents(comanda.Cliente)}\n`;
     receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
-    receipt += `Código Descricao Produto\n`;
+    receipt += `Codigo Descricao Produto\n`;
     receipt += `Vr Unit. x Qtde Vr = Total\n\n`;
 
     let totalQuantity = 0;
@@ -271,7 +272,7 @@ export default function VendasInterface({ user }) {
         totalQuantity += item.quantidade;
         totalValue += itemTotal;
 
-        receipt += `${DOUBLE_SIZE}${BOLD_ON}${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
+        receipt += `${DOUBLE_SIZE}${BOLD_ON}${removeAccents(produto.Descricao)}${BOLD_OFF}${NORMAL_SIZE}\n`;
         receipt += `${produto.Preco.toFixed(2)} x ${String(item.quantidade).padStart(3, '0')} = ${itemTotal.toFixed(2)}\n\n`;
       }
     });
@@ -280,8 +281,8 @@ export default function VendasInterface({ user }) {
     receipt += `${DOUBLE_SIZE}${BOLD_ON}Qtde.${String(totalQuantity).padStart(3, '0')} \nTotal: ${totalValue.toFixed(2)}${BOLD_OFF}${NORMAL_SIZE}\n\n`;
     
     // Usar nome da casa da configuração ou TecBar como padrão
-    const nomeCasa = config && config["nome sala"] ? config["nome sala"] : "TecBar";
-    const senhaDiaria = config && config["senha diaria"] ? config["senha diaria"] : "";
+    const nomeCasa = config && config["nome sala"] ? removeAccents(config["nome sala"]) : "TecBar";
+    const senhaDiaria = config && config["senha diaria"] ? removeAccents(config["senha diaria"]) : "";
     
     if (senhaDiaria) {
       receipt += `${ALIGN_CENTER}${nomeCasa} - ${senhaDiaria}\n\n\n\n`;
@@ -316,8 +317,8 @@ export default function VendasInterface({ user }) {
     receipt += `================================\n`;
     receipt += `CUPOM DE COMISSAO\n`;
     receipt += `================================\n`;
-    receipt += `${DOUBLE_SIZE}${BOLD_ON}${attendant.Apelido} - ${attendant.id}${BOLD_OFF}${NORMAL_SIZE}\n`;
-    receipt += `${ALIGN_LEFT}Cliente: ${selectedComanda?.Cliente || 'N/A'}\n`;
+    receipt += `${DOUBLE_SIZE}${BOLD_ON}${removeAccents(attendant.Apelido)} - ${attendant.id}${BOLD_OFF}${NORMAL_SIZE}\n`;
+    receipt += `${ALIGN_LEFT}Cliente: ${removeAccents(selectedComanda?.Cliente || 'N/A')}\n`;
     receipt += `Comanda: ${selectedComanda?.Idcomanda || 'N/A'} - Id Venda: ${cupomId || 'N/A'}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Produtos com Comissao:\n\n`;
@@ -325,7 +326,7 @@ export default function VendasInterface({ user }) {
     items.forEach(({ item, produto, commissionPerAttendant }) => {
       const itemCommissionTotal = commissionPerAttendant * item.quantidade;
 
-      receipt += `${DOUBLE_SIZE}${BOLD_ON}${produto.Descricao}${BOLD_OFF}${NORMAL_SIZE}\n`;
+      receipt += `${DOUBLE_SIZE}${BOLD_ON}${removeAccents(produto.Descricao)}${BOLD_OFF}${NORMAL_SIZE}\n`;
       receipt += `Qtde: ${item.quantidade} - Comissao: R$ ${commissionPerAttendant.toFixed(2)}\n`;
       receipt += `Total: R$ ${itemCommissionTotal.toFixed(2)}\n\n`;
     });
@@ -335,7 +336,7 @@ export default function VendasInterface({ user }) {
     receipt += `================================\n`;
     
     // Usar nome da casa da configuração ou TecBar como padrão
-    const nomeCasa = config && config["nome sala"] ? config["nome sala"] : "TecBar";
+    const nomeCasa = config && config["nome sala"] ? removeAccents(config["nome sala"]) : "TecBar";
     receipt += `${ALIGN_CENTER}${nomeCasa}\n\n\n\n`;
 
     return receipt;
