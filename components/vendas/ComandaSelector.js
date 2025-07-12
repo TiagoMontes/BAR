@@ -9,14 +9,15 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
   // Filter comandas based on search term
   const filteredComandas = comandas.filter(comanda => 
     comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-    String(comanda.Idcomanda).includes(comandaSearchTerm)
+    String(comanda.Idcomanda).includes(comandaSearchTerm) ||
+    String(comanda.Numero).includes(comandaSearchTerm)
   )
 
   return (
     <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-lg">
       <div className="flex justify-between items-center mb-2">
         {selectedComanda && (
-          <p className="font-medium text-gray-100">{selectedComanda.Idcomanda} - {selectedComanda.Cliente}</p>
+          <p className="font-medium text-gray-100">{selectedComanda.Numero} - {selectedComanda.Cliente}</p>
         )}
         <Link
           href="/comandas"
@@ -49,7 +50,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
           <div className="flex flex-col gap-2">
             <input
               type="text"
-              placeholder="Buscar comanda por nome ou ID..."
+              placeholder="Buscar comanda por nome, ID ou número..."
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
               value={comandaSearchTerm}
               onChange={(e) => {
@@ -62,7 +63,8 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                   if (comandaSearchTerm.trim()) {
                     const matchingComanda = comandas.find(comanda => 
                       comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                      String(comanda.Idcomanda).includes(comandaSearchTerm)
+                      String(comanda.Idcomanda).includes(comandaSearchTerm) ||
+                      String(comanda.Numero).includes(comandaSearchTerm)
                     )
                     
                     if (matchingComanda) {
@@ -79,7 +81,8 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                 {filteredComandas
                   .filter(comanda => 
                     comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                    String(comanda.Idcomanda).includes(comandaSearchTerm)
+                    String(comanda.Idcomanda).includes(comandaSearchTerm) ||
+                    String(comanda.Numero).includes(comandaSearchTerm)
                   )
                   .map(comanda => (
                     <div
@@ -90,12 +93,13 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                         setComandaSearchTerm('')
                       }}
                     >
-                      {comanda.Cliente} (ID: {comanda.Idcomanda})
+                      {comanda.Cliente} - {comanda.Numero} (ID: {comanda.Idcomanda})
                     </div>
                   ))}
                 {filteredComandas.filter(comanda => 
                   comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                  String(comanda.Idcomanda).includes(comandaSearchTerm)
+                  String(comanda.Idcomanda).includes(comandaSearchTerm) ||
+                  String(comanda.Numero).includes(comandaSearchTerm)
                 ).length === 0 && (
                   <div className="px-4 py-2 text-gray-400">
                     Nenhuma comanda encontrada
@@ -115,7 +119,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
             <div className="mb-4">
               <input
                 type="text"
-                placeholder="Buscar comanda por nome ou ID..."
+                placeholder="Buscar comanda por nome, ID ou número..."
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400 mb-3"
                 value={comandaSearchTerm}
                 onChange={(e) => {
@@ -128,7 +132,8 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                     if (comandaSearchTerm.trim()) {
                       const matchingComanda = comandas.find(comanda => 
                         comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                        String(comanda.Idcomanda).includes(comandaSearchTerm)
+                        String(comanda.Idcomanda).includes(comandaSearchTerm) ||
+                        String(comanda.Numero).includes(comandaSearchTerm)
                       )
                       
                       if (matchingComanda) {
@@ -146,7 +151,8 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                   {filteredComandas
                     .filter(comanda => 
                       comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                      String(comanda.Idcomanda).includes(comandaSearchTerm)
+                      String(comanda.Idcomanda).includes(comandaSearchTerm) ||
+                      String(comanda.Numero).includes(comandaSearchTerm)
                     )
                     .map(comanda => (
                       <div
@@ -163,7 +169,8 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                     ))}
                   {filteredComandas.filter(comanda => 
                     comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                    String(comanda.Idcomanda).includes(comandaSearchTerm)
+                    String(comanda.Idcomanda).includes(comandaSearchTerm) ||
+                    String(comanda.Numero).includes(comandaSearchTerm)
                   ).length === 0 && (
                     <div className="px-4 py-2 text-gray-400">
                       Nenhuma comanda encontrada

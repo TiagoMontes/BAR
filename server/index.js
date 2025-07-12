@@ -256,10 +256,14 @@ app.get('/api/config', async (req, res) => {
 
 app.post('/api/comandas/create', async (req, res) => {
   try {
-    const { cliente, operadorId } = req.body;
+    const { cliente, numero, operadorId } = req.body;
+
+    console.log('cliente', cliente);
+    console.log('numero', numero);
+    console.log('operadorId', operadorId);  
 
     if (!operadorId) {
-      return res.status(400).json({ message: 'operadorId são obrigatórios' });
+      return res.status(400).json({ message: 'operadorId é obrigatório' });
     }
 
     // Criar pasta Comandas se não existir
@@ -281,12 +285,22 @@ app.post('/api/comandas/create', async (req, res) => {
     const comandasPath = path.join(DATA_DIR_JSON, 'comandas.json');
     const comandas = await readJsonFile(comandasPath);
     
+    // Determinar o número da comanda
+    let numeroComanda;
+    if (numero) {
+      // Se número foi enviado, usar ele
+      numeroComanda = numero;
+    } else {
+      // Se não foi enviado, usar a configuração
+      numeroComanda = comandaInicial;
+    }
+    
     // Verificar se já existe uma comanda com o mesmo nome
-    const comandaExistente = comandas.find(c => c.Cliente === cliente);
+    const comandaExistente = comandas.find(c => c.Cliente === cliente && c.Numero === numeroComanda);
     if (comandaExistente) {
       return res.status(200).json({
         exists: true,
-        message: `Já existe uma comanda para ${cliente}`,
+        message: `Já existe uma comanda para ${cliente} ou numero ${numeroComanda}`,
         comanda: comandaExistente
       });
     }
@@ -313,10 +327,10 @@ app.post('/api/comandas/create', async (req, res) => {
       }
     }
 
-    // Criar conteúdo do arquivo .cv no formato: id_da_comanda!nome_da_comanda!entrada_data
+    // Criar conteúdo do arquivo .cv no formato: numero!id_da_comanda!nome_da_comanda!operadorId!entrada_data
     const entradaData = new Date().toLocaleString('pt-BR');
-    const cvContent = `${newId}!${cliente.toUpperCase()}!${operadorId}!${entradaData}`;
-    const cvFileName = `${String(newId).padStart(5, '0')}.cv`;
+    const cvContent = `${numeroComanda}!${newId}!${cliente.toUpperCase()}!${operadorId}!${entradaData}`;
+    const cvFileName = `${String(numeroComanda).padStart(5, '0')}-${String(newId).padStart(5, '0')}.cv`;
     const cvFilePath = path.join(comandasDir, cvFileName);
     
     await fs.writeFile(cvFilePath, cvContent, 'utf8');
@@ -325,6 +339,7 @@ app.post('/api/comandas/create', async (req, res) => {
     const novaComanda = {
       Idcomanda: newId,
       Cliente: cliente,
+      Numero: numeroComanda,
       Entrada: entradaData,
       saldo: 0,
       status: 1
@@ -333,6 +348,7 @@ app.post('/api/comandas/create', async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Comanda criada com sucesso',
+      numero: numero,
       comanda: novaComanda,
       comandaId: newId,
       fileName: cvFileName
@@ -399,10 +415,10 @@ app.post('/api/comandas/close', async (req, res) => {
 
 app.post('/api/vendas', async (req, res) => {
   try {
-    const { comandaId, operadorId, items, atendentes } = req.body;
+    const { comandaId, operadorId, comandaNumero, items, atendentes } = req.body;
 
     // Validar dados
-    if (!comandaId || !operadorId || !items || !Array.isArray(items)) {
+    if (!comandaId || !operadorId  || !items || !Array.isArray(items)) {
       throw new Error('Dados incompletos: comandaId, operadorId e items são obrigatórios');
     }
 
@@ -465,9 +481,12 @@ app.post('/api/vendas', async (req, res) => {
       } else {
         let highestCupomId = 0;
         cupomFiles.forEach(file => {
-          const fileCupomId = parseInt(file.split('-')[2].split('.')[0]);
-          if (fileCupomId > highestCupomId) {
-            highestCupomId = fileCupomId;
+          const parts = file.split('-');
+          if (parts.length >= 4) {
+            const fileCupomId = parseInt(parts[3].split('.')[0]);
+            if (!isNaN(fileCupomId) && fileCupomId > highestCupomId) {
+              highestCupomId = fileCupomId;
+            }
           }
         });
         cupomId = highestCupomId + 1;
@@ -481,9 +500,12 @@ app.post('/api/vendas', async (req, res) => {
         // Se há cupons, usar o maior entre (maior cupomId + 1) e cupom inicial
         let highestCupomId = 0;
         cupomFiles.forEach(file => {
-          const fileCupomId = parseInt(file.split('-')[2].split('.')[0]);
-          if (fileCupomId > highestCupomId) {
-            highestCupomId = fileCupomId;
+          const parts = file.split('-');
+          if (parts.length >= 4) {
+            const fileCupomId = parseInt(parts[3].split('.')[0]);
+            if (!isNaN(fileCupomId) && fileCupomId > highestCupomId) {
+              highestCupomId = fileCupomId;
+            }
           }
         });
         cupomId = Math.max(highestCupomId + 1, cupomInicial);
@@ -497,7 +519,9 @@ app.post('/api/vendas', async (req, res) => {
       return `${item.produtoId}!${produto.Descricao}!${item.quantidade}!${atendenteIds}!`;
     }).join('\n');
 
-    const saleFileName = `${String(comandaId).padStart(5, '0')}-${String(operadorId).padStart(2, '0')}-${String(cupomId).padStart(4, '0')}.cv`;
+    // Obter o número da comanda para usar no nome do arquivo
+    const numeroComanda = comanda.Numero;
+    const saleFileName = `${String(numeroComanda).padStart(5, '0')}-${String(comandaId).padStart(5, '0')}-${String(operadorId).padStart(2, '0')}-${String(cupomId).padStart(4, '0')}.cv`;
     
     await fs.writeFile(path.join(salesDir, saleFileName), saleContent);
     await fs.writeFile(path.join(salesHistoryDir, saleFileName), saleContent);
@@ -562,9 +586,10 @@ app.get('/api/vendas/comanda/:id', async (req, res) => {
     console.log(`📁 Arquivos encontrados na pasta historico: ${files.length}`);
     
     // Filter files for this comanda
-    const comandaFiles = files.filter(file => 
-      file.startsWith(String(id).padStart(5, '0'))
-    );
+    const comandaFiles = files.filter(file => {
+      const parts = file.split('-');
+      return parts.length >= 2 && parts[1] === String(id).padStart(5, '0');
+    });
     console.log(`🎯 Arquivos da comanda ${id} no historico:`, comandaFiles);
 
     // Read and parse each sale file from historico
@@ -607,7 +632,8 @@ app.get('/api/vendas/comanda/:id', async (req, res) => {
         const total = items.reduce((sum, item) => sum + (item.quantidade * item.preco), 0);
 
         // Extrair cupomId do fileName para debug
-        const cupomId = file.split('-')[2]?.split('.')[0] || 'N/A';
+        const parts = file.split('-');
+        const cupomId = parts.length >= 4 ? parts[3].split('.')[0] : 'N/A';
         console.log(`🎫 Cupom ID extraído de ${file}: ${cupomId}`);
 
         const vendaData = {

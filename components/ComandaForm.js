@@ -72,9 +72,12 @@ export default function ComandaForm({ onComandaSelect, onCancel, onComandaCreate
       } else if (mostrarCampoNumero) {
         nomeComanda = numero.trim()
       } else {
-        nomeComanda = '' // será ignorado pelo backend
+        nomeComanda = 'cliente'
       }
-      const response = await createComanda(nomeComanda, user["Id operador"])
+      
+      // Enviar número apenas se o campo estiver habilitado
+      const numeroToSend = mostrarCampoNumero ? numero.trim() : null
+      const response = await createComanda(nomeComanda, numeroToSend, user["Id operador"])
       if (response.exists) {
         setExistingComanda(response.comanda)
         setError(response.message)
@@ -140,13 +143,13 @@ export default function ComandaForm({ onComandaSelect, onCancel, onComandaCreate
               <label htmlFor="cliente" className="block text-sm font-medium text-gray-300 mb-2">
                 Nome do Cliente
               </label>
-            <input
-              type="text"
-              id="cliente"
-              value={cliente}
-              onChange={(e) => setCliente(e.target.value)}
+              <input
+                type="text"
+                id="cliente"
+                value={cliente}
+                onChange={(e) => setCliente(e.target.value)}
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
-              placeholder="Digite o nome do cliente"
+                placeholder="Digite o nome do cliente"
                 required={nomeClienteHabilitado}
               />
             </div>

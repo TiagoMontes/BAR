@@ -36,7 +36,8 @@ export default function Comandas() {
   // Filter comandas based on search term
   const filteredComandas = comandas.filter(comanda => 
     comanda.Cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(comanda.Idcomanda).includes(searchTerm)
+    String(comanda.Idcomanda).includes(searchTerm) ||
+    String(comanda.Numero).includes(searchTerm)
   )
 
   const handleCreateComanda = async (newComanda) => {
@@ -106,7 +107,7 @@ export default function Comandas() {
       <div className="mb-6">
         <input
           type="text"
-          placeholder="Buscar comanda por nome ou ID..."
+          placeholder="Buscar comanda por nome, ID ou número..."
           className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -134,7 +135,7 @@ export default function Comandas() {
             >
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h3 className="font-semibold text-gray-100">{comanda.Cliente}</h3>
+                  <h3 className="font-semibold text-gray-100">{comanda.Cliente} - {comanda.Numero}</h3>
                   <p className="text-sm text-gray-400">
                     ID: {comanda.Idcomanda}
                   </p>
