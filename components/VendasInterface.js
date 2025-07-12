@@ -257,7 +257,7 @@ export default function VendasInterface({ user }) {
     
     receipt += `--------------------------------\n`;
     receipt += `${ALIGN_LEFT}Cliente: ${removeAccents(comanda.Cliente)}\n`;
-    receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
+    receipt += `Comanda: ${comanda.Numero} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Codigo Descricao Produto\n`;
     receipt += `Vr Unit. x Qtde Vr = Total\n\n`;

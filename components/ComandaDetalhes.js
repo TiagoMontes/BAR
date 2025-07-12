@@ -46,7 +46,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
     
     receipt += `--------------------------------\n`;
     receipt += `${ALIGN_LEFT}Cliente: ${removeAccents(comanda.Cliente)}\n`;
-    receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
+    receipt += `Comanda: ${comanda.Numero} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Codigo Descricao Produto\n`;
     receipt += `Vr Unit. x Qtde =Vr Total\n\n`;
@@ -97,7 +97,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
     receipt += `================================\n`;
     receipt += `${DOUBLE_SIZE}${BOLD_ON}${removeAccents(attendente.Apelido)} - ${attendente.id}${BOLD_OFF}${NORMAL_SIZE}\n`;
     receipt += `${ALIGN_LEFT}Cliente: ${removeAccents(comanda.Cliente)}\n`;
-    receipt += `Comanda: ${comanda.Idcomanda} - Id Venda: ${cupomId}\n`;
+    receipt += `Comanda: ${comanda.Numero} - Id Venda: ${cupomId}\n`;
     receipt += `--------------------------------\n`;
     receipt += `Produtos com Comissao:\n\n`;
   
@@ -251,7 +251,7 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-400">Cliente</p>
-                <p className="font-medium text-gray-100">{comanda.Cliente}</p>
+                <p className="font-medium text-gray-100">{comanda.Cliente} - {comanda.Numero}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-400">ID</p>
