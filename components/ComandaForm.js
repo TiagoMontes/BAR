@@ -13,8 +13,8 @@ export default function ComandaForm({ onComandaSelect, onCancel, onComandaCreate
 
   // Verificar se nome cliente está habilitado
   const nomeClienteHabilitado = config && config["nome cliente"] === 1
-  const comandaInicial = config && Number(config["comanda inicial"])
-  const mostrarCampoNumero = comandaInicial === 0
+  const comandaInicial = config && config["comanda inicial"]
+  const mostrarCampoNumero = comandaInicial === null || comandaInicial === undefined
 
   // Calcular próximo número da comanda
   useEffect(() => {
@@ -26,17 +26,17 @@ export default function ComandaForm({ onComandaSelect, onCancel, onComandaCreate
           
           if (comandas.length === 0) {
             // Se não há comandas, usar o valor inicial da configuração
-            proximo = comandaInicial
+            proximo = Number(comandaInicial) || 1
           } else {
             // Se há comandas, usar o maior ID + 1, mas nunca menor que o valor inicial
             const maiorId = Math.max(...comandas.map(c => c.Idcomanda))
-            proximo = Math.max(maiorId + 1, comandaInicial)
+            proximo = Math.max(maiorId + 1, Number(comandaInicial) || 1)
           }
           
           setProximoNumero(proximo)
         } catch (error) {
           console.error('Erro ao calcular próximo número:', error)
-          setProximoNumero(comandaInicial)
+          setProximoNumero(Number(comandaInicial) || 1)
         }
       }
     }
@@ -72,7 +72,7 @@ export default function ComandaForm({ onComandaSelect, onCancel, onComandaCreate
       } else if (mostrarCampoNumero) {
         nomeComanda = numero.trim()
       } else {
-        nomeComanda = 'cliente'
+        nomeComanda = 'CLIENTE'
       }
       
       // Enviar número apenas se o campo estiver habilitado

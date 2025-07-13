@@ -295,6 +295,9 @@ app.post('/api/comandas/create', async (req, res) => {
       numeroComanda = comandaInicial;
     }
     
+    // Se comanda inicial é null/undefined, vamos usar o ID da comanda como número
+    // (será definido depois de gerar o newId)
+    
     // Verificar se já existe uma comanda com o mesmo nome
     const comandaExistente = comandas.find(c => c.Cliente === cliente && c.Numero === numeroComanda);
     if (comandaExistente) {
@@ -307,8 +310,8 @@ app.post('/api/comandas/create', async (req, res) => {
     
     // Gerar novo ID de comanda baseado na configuração
     let newId;
-    if (comandaInicial === 0) {
-      // Se comanda inicial é 0, usar o maior ID + 1
+    if (comandaInicial === null || comandaInicial === undefined) {
+      // Se comanda inicial é null/undefined, usar o maior ID + 1
       if (comandas.length === 0) {
         newId = 1;
       } else {
@@ -316,17 +319,23 @@ app.post('/api/comandas/create', async (req, res) => {
         newId = lastId + 1;
       }
     } else {
-      // Se comanda inicial > 0, usar o valor da configuração ou maior
+      // Se comanda inicial tem valor, usar o valor da configuração ou maior
+      const comandaInicialNum = Number(comandaInicial);
       if (comandas.length === 0) {
         // Se não há comandas, usar o valor inicial da configuração
-        newId = comandaInicial;
+        newId = comandaInicialNum;
       } else {
         // Se há comandas, usar o maior entre (maior ID + 1) e comanda inicial
         const lastId = Math.max(...comandas.map(c => c.Idcomanda));
-        newId = Math.max(lastId + 1, comandaInicial);
+        newId = Math.max(lastId + 1, comandaInicialNum);
       }
     }
 
+    // Se comanda inicial é null/undefined, usar o ID da comanda como número
+    if (comandaInicial === null || comandaInicial === undefined) {
+      numeroComanda = newId;
+    }
+    
     // Criar conteúdo do arquivo .cv no formato: numero!id_da_comanda!nome_da_comanda!operadorId!entrada_data
     const entradaData = new Date().toLocaleString('pt-BR');
     const cvContent = `${numeroComanda}!${newId}!${cliente.toUpperCase()}!${operadorId}!${entradaData}`;
