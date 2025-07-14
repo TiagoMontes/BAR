@@ -66,7 +66,7 @@ export default function ComandaForm({ onComandaSelect, onCancel, onComandaCreate
       const user = JSON.parse(userData)
       let nomeComanda
       if (nomeClienteHabilitado && mostrarCampoNumero) {
-        nomeComanda = `${cliente.trim()} - ${numero.trim()}`
+        nomeComanda = cliente.trim()
       } else if (nomeClienteHabilitado) {
         nomeComanda = cliente.trim()
       } else if (mostrarCampoNumero) {
