@@ -11,6 +11,8 @@ export default function Vendas() {
   const [isLoading, setIsLoading] = useState(true)
   const { config } = useConfig()
 
+  console.log(user['Id operador'])
+
   useEffect(() => {
     const userData = localStorage.getItem('user')
     if (!userData) {
@@ -52,7 +54,7 @@ export default function Vendas() {
             </span>
             <button
               onClick={() => {
-                logout(user.Id)
+                logout(user['Id operador'])
                 localStorage.removeItem('user')
                 router.push('/')
               }}

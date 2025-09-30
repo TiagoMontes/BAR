@@ -30,7 +30,7 @@ export default function Vendas() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ operadorId: user.Id }),
+        body: JSON.stringify({ operadorId: user['Id operador'] }),
       })
 
       if (!response.ok) {

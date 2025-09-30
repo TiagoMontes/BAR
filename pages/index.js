@@ -14,7 +14,7 @@ export default function Login() {
     if (userData) {
       try {
         const user = JSON.parse(userData)
-        if (user && user.Id) {
+        if (user && user['Id operador']) {
           router.push('/vendas')
           return
         }
