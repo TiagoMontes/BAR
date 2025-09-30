@@ -25,12 +25,13 @@ export default function Vendas() {
 
   const handleLogout = async () => {
     try {
+      const operadorId = user?.['Id operador']
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ operadorId: user['Id operador'] }),
+        body: JSON.stringify({ operadorId }),
       })
 
       if (!response.ok) {
