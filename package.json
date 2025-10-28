@@ -14,6 +14,7 @@
     "cap:run:android": "npx cap run android",
     "build:android": "npm run build && npx cap sync android && npx cap open android",
     "build:apk": "cd android && ./gradlew assembleDebug && cd .. && mkdir -p apk && mv android/app/build/outputs/apk/debug/app-debug.apk apk/bar.apk",
+    "build:apk:win": "cd android && gradlew.bat assembleDebug && cd .. && if not exist apk mkdir apk && copy android\\app\\build\\outputs\\apk\\debug\\app-debug.apk apk\\bar.apk",
     "generate:config": "node scripts/generateConfig.js",
     "set:config": "node scripts/setConfig.js",
     "sync:operadores": "node scripts/syncOperadores.js",
