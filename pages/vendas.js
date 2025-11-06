@@ -51,10 +51,18 @@ export default function Vendas() {
               Operador: {user.Nome}
             </span>
             <button
-              onClick={() => {
-                logout(user.Id)
-                localStorage.removeItem('user')
-                router.push('/')
+              onClick={async () => {
+                try {
+                  const operadorId = user?.['Id operador']
+                  if (operadorId) {
+                    await logout(operadorId)
+                  }
+                } catch (error) {
+                  console.error('Erro ao fazer logout:', error)
+                } finally {
+                  localStorage.removeItem('user')
+                  router.push('/')
+                }
               }}
               className="px-4 py-2 bg-red-600 text-sm text-white hover:bg-red-700 rounded-lg transition-colors"
             >
