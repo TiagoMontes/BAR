@@ -1,17 +1,34 @@
 import { useState } from 'react'
 import Link from 'next/link'
+import ComandaForm from '../ComandaForm'
 
-export default function ComandaSelector({ comandas, selectedComanda, onComandaSelect, onShowDetails, onCloseComanda }) {
+export default function ComandaSelector({ comandas, selectedComanda, onComandaSelect, onShowDetails, onCloseComanda, onComandaCreated }) {
   const [comandaSearchTerm, setComandaSearchTerm] = useState('')
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false)
   const [isSelectOpen, setIsSelectOpen] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   // Filter comandas based on search term
-  const filteredComandas = comandas.filter(comanda => 
+  const filteredComandas = comandas.filter(comanda =>
     comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
     String(comanda.Idcomanda).includes(comandaSearchTerm) ||
     String(comanda.Numero).includes(comandaSearchTerm)
   )
+
+  const handleCreateComanda = async (newComanda) => {
+    onComandaSelect(newComanda)
+    setIsCreateModalOpen(false)
+    setComandaSearchTerm('')
+    if (onComandaCreated) {
+      onComandaCreated()
+    }
+  }
+
+  const handleComandaCreatedRefresh = () => {
+    if (onComandaCreated) {
+      onComandaCreated()
+    }
+  }
 
   return (
     <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-lg">
@@ -96,13 +113,19 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                       {comanda.Cliente} - {comanda.Numero} (ID: {comanda.Idcomanda})
                     </div>
                   ))}
-                {filteredComandas.filter(comanda => 
+                {filteredComandas.filter(comanda =>
                   comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
                   String(comanda.Idcomanda).includes(comandaSearchTerm) ||
                   String(comanda.Numero).includes(comandaSearchTerm)
                 ).length === 0 && (
-                  <div className="px-4 py-2 text-gray-400">
-                    Nenhuma comanda encontrada
+                  <div className="px-4 py-2">
+                    <div className="text-gray-400 mb-2">Nenhuma comanda encontrada</div>
+                    <button
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                    >
+                      Criar Nova Comanda
+                    </button>
                   </div>
                 )}
               </div>
@@ -167,13 +190,22 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                         {comanda.Cliente} (ID: {comanda.Idcomanda})
                       </div>
                     ))}
-                  {filteredComandas.filter(comanda => 
+                  {filteredComandas.filter(comanda =>
                     comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
                     String(comanda.Idcomanda).includes(comandaSearchTerm) ||
                     String(comanda.Numero).includes(comandaSearchTerm)
                   ).length === 0 && (
-                    <div className="px-4 py-2 text-gray-400">
-                      Nenhuma comanda encontrada
+                    <div className="px-4 py-2">
+                      <div className="text-gray-400 mb-2">Nenhuma comanda encontrada</div>
+                      <button
+                        onClick={() => {
+                          setIsSelectOpen(false)
+                          setIsCreateModalOpen(true)
+                        }}
+                        className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                      >
+                        Criar Nova Comanda
+                      </button>
                     </div>
                   )}
                 </div>
@@ -218,6 +250,17 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Modal de criação rápida de comanda */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <ComandaForm
+            onComandaSelect={handleCreateComanda}
+            onCancel={() => setIsCreateModalOpen(false)}
+            onComandaCreated={handleComandaCreatedRefresh}
+          />
         </div>
       )}
     </div>

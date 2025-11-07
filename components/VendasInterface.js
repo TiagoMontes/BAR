@@ -99,7 +99,7 @@ export default function VendasInterface({ user }) {
     try {
       setError('');
       await closeComanda(comandaId);
-      
+
       // Atualiza a lista de comandas localmente
       const updatedComandas = await getComandas();
       setComandas(updatedComandas);
@@ -110,6 +110,16 @@ export default function VendasInterface({ user }) {
       const errorMessage = err.response?.data?.error || err.message || 'Erro desconhecido ao fechar a comanda';
       setError(errorMessage);
       console.error('Erro ao fechar comanda:', err);
+    }
+  };
+
+  const handleComandaCreated = async () => {
+    try {
+      // Atualiza a lista de comandas após criar uma nova
+      const updatedComandas = await getComandas();
+      setComandas(updatedComandas);
+    } catch (err) {
+      console.error('Erro ao atualizar comandas:', err);
     }
   };
 
@@ -613,6 +623,7 @@ export default function VendasInterface({ user }) {
               onComandaSelect={setSelectedComanda}
               onShowDetails={setShowComandaDetalhes}
               onCloseComanda={handleCloseComanda}
+              onComandaCreated={handleComandaCreated}
             />
           </div>
           <Cart
@@ -654,6 +665,7 @@ export default function VendasInterface({ user }) {
               onComandaSelect={setSelectedComanda}
               onShowDetails={setShowComandaDetalhes}
               onCloseComanda={handleCloseComanda}
+              onComandaCreated={handleComandaCreated}
             />
           </div>
           
