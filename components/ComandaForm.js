@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { createComanda, getComandas } from '../lib/api'
 import { useConfig } from '../hooks/useConfig'
 
-export default function ComandaForm({ onComandaSelect, onCancel, onComandaCreated }) {
-  const [cliente, setCliente] = useState('')
-  const [numero, setNumero] = useState('')
+export default function ComandaForm({ onComandaSelect, onCancel, onComandaCreated, initialCliente = '', initialNumero = '' }) {
+  const [cliente, setCliente] = useState(initialCliente)
+  const [numero, setNumero] = useState(initialNumero)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [existingComanda, setExistingComanda] = useState(null)

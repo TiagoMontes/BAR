@@ -59,6 +59,12 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
             >
               Detalhes
             </button>
+            <button
+              onClick={() => onComandaSelect(null)}
+              className="text-sm text-red-400 hover:text-red-300 transition-colors"
+            >
+              Limpar
+            </button>
           </div>
         </div>
       ) : (
@@ -258,8 +264,13 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
           <ComandaForm
             onComandaSelect={handleCreateComanda}
-            onCancel={() => setIsCreateModalOpen(false)}
+            onCancel={() => {
+              setIsCreateModalOpen(false)
+              setComandaSearchTerm('')
+            }}
             onComandaCreated={handleComandaCreatedRefresh}
+            initialCliente={comandaSearchTerm}
+            initialNumero={comandaSearchTerm}
           />
         </div>
       )}
