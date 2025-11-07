@@ -145,9 +145,6 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
   }, [comanda, isOpen])
 
   const handleVendaClick = async (venda) => {
-    // Usar o cupomId que está sendo retornado diretamente pelo servidor
-    console.log('🎫 Cupom ID para reimpressão:', venda.cupomId, 'da venda:', venda);
-    
     const confirmacao = window.confirm(`Deseja reimprimir o cupom de venda & comissão #${venda.cupomId}?`)
     
     if (confirmacao) {
@@ -283,8 +280,6 @@ export default function ComandaDetalhes({ comanda, isOpen, onClose, highlightCup
                 {vendas.map((venda, index) => {
                   // Usar o cupomId que está sendo retornado diretamente pelo servidor
                   const isHighlighted = highlightCupom && String(venda.cupomId) === String(highlightCupom)
-                  console.log(`🎫 Venda ${index}: cupomId=${venda.cupomId}, fileName=${venda.fileName}`);
-                  
                   return (
                     <div 
                       key={index} 

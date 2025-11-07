@@ -64,6 +64,11 @@ export default function ComandaForm({ onComandaSelect, onCancel, onComandaCreate
     const userData = localStorage.getItem('user')
     try {
       const user = JSON.parse(userData)
+      if (!user || !user['Id operador']) {
+        setError('Sessão inválida. Faça login novamente.')
+        setIsLoading(false)
+        return
+      }
       let nomeComanda
       if (nomeClienteHabilitado && mostrarCampoNumero) {
         nomeComanda = cliente.trim()

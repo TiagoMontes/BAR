@@ -178,15 +178,9 @@ export default function VendasInterface({ user }) {
 
   // Gerenciar fila de modais de atendente
   useEffect(() => {
-    console.log('useEffect attendantModalQueue:', {
-      queueLength: attendantModalQueue.length,
-      currentModal: currentAttendantModal,
-      queue: attendantModalQueue
-    });
-    
+  
     if (attendantModalQueue.length > 0 && !currentAttendantModal) {
       const nextModal = attendantModalQueue[0];
-      console.log('Abrindo próximo modal:', nextModal);
       setCurrentAttendantModal(nextModal);
       setAttendantModalQueue(prev => prev.slice(1));
     }
@@ -295,8 +289,6 @@ export default function VendasInterface({ user }) {
 
   // Nova função para formatar cupom de atendente
   const formatAttendantReceipt = (attendantCommission, cupomId) => {
-    console.log('formatAttendantReceipt chamada com:', attendantCommission, 'cupomId:', cupomId);
-    
     // Verificar se o attendant existe
     if (!attendantCommission || !attendantCommission.attendant) {
       console.error('Attendant é undefined ou null');
@@ -344,15 +336,10 @@ export default function VendasInterface({ user }) {
 
   // Calcular comissões por atendente
   const calculateAttendantCommissions = () => {
-    console.log('Calculando comissões...');
-    console.log('Atendentes selecionados:', selectedAtendentes);
-    console.log('Carrinho:', cart);
-    
     const attendantCommissions = {};
 
     // Inicializar para cada atendente selecionado
     selectedAtendentes.forEach(atendente => {
-      console.log('Inicializando comissão para atendente:', atendente);
       attendantCommissions[atendente.id] = {
         attendant: atendente, // Garantir que o objeto attendant está sendo passado
         items: [],
@@ -363,12 +350,6 @@ export default function VendasInterface({ user }) {
     // Processar itens do carrinho
     cart.forEach(item => {
       const produto = produtos.find(p => p.Id === item.produtoId);
-      console.log(`Item ${produto?.Descricao}:`, {
-        produtoId: item.produtoId,
-        atendentes: item.atendentes,
-        comissao: produto?.Comissao,
-        quantidade: item.quantidade
-      });
       
       if (produto && produto.Comissao > 0 && item.atendentes && item.atendentes.length > 0) {
         // Distribuir comissão entre os atendentes
@@ -384,13 +365,6 @@ export default function VendasInterface({ user }) {
             });
             attendantCommissions[atendenteId].totalCommission += 
               comissaoPorAtendente * item.quantidade;
-            
-            console.log(`Comissão adicionada para atendente ${atendenteId}:`, {
-              produto: produto.Descricao,
-              comissao: comissaoPorAtendente,
-              quantidade: item.quantidade,
-              total: comissaoPorAtendente * item.quantidade
-            });
           } else {
             console.warn(`Atendente ${atendenteId} não encontrado nas comissões`);
           }
@@ -399,7 +373,6 @@ export default function VendasInterface({ user }) {
     });
 
     const result = Object.values(attendantCommissions).filter(ac => ac.items.length > 0);
-    console.log('Resultado final das comissões:', result);
     return result;
   };
 
@@ -418,11 +391,18 @@ export default function VendasInterface({ user }) {
       setSaleStatus(null)
       setErrorMessage('')
 
+      const operadorId = user?.['Id operador']
+      if (!operadorId) {
+        setSaleStatus('error')
+        setErrorMessage('Sessão inválida ou expirada. Faça login novamente.')
+        return
+      }
+
       // Registra a venda primeiro
       const response = await registerSale({
         comandaId: selectedComanda.Idcomanda,
         comandaNumero: selectedComanda.Numero,
-        operadorId: user["Id operador"],
+        operadorId,
         items: cart,
         atendentes: selectedAtendentes.map(a => a.id)
       })
@@ -447,11 +427,8 @@ export default function VendasInterface({ user }) {
 
       if (imprimirHabilitado) {
       try {
-        console.log('Iniciando processo de impressão...');
         await bluetoothService.initialize();
-        console.log('Bluetooth inicializado, enviando dados...');
         await bluetoothService.sendData(receipt);
-        console.log('Dados enviados com sucesso!');
         printSuccess = true;
         setSaleStatus('success');
         setErrorMessage('');
@@ -482,12 +459,8 @@ export default function VendasInterface({ user }) {
       const comissaoHabilitada = config && config.comissao === 1;
       if (selectedAtendentes.length > 0 && comissaoHabilitada) {
         const attendantCommissions = calculateAttendantCommissions();
-        console.log('Comissões calculadas:', attendantCommissions);
-        
         if (attendantCommissions.length > 0) {
           const modalsQueue = attendantCommissions.map(commission => {
-            console.log('Criando modal para comissão:', commission);
-            
             // Verificar se o attendant existe
             if (!commission.attendant) {
               console.error('Attendant não encontrado na comissão:', commission);
@@ -500,8 +473,6 @@ export default function VendasInterface({ user }) {
               receipt: formatAttendantReceipt(commission, response.cupomId)
             };
           }).filter(modal => modal !== null); // Remover modais inválidos
-          
-          console.log('Fila de modais criada:', modalsQueue);
           setAttendantModalQueue(modalsQueue);
         }
       }
@@ -552,7 +523,6 @@ export default function VendasInterface({ user }) {
     try {
       await bluetoothService.initialize();
       await bluetoothService.sendData(receipt);
-      console.log('Cupom de atendente impresso com sucesso!');
     } catch (error) {
       console.error('Erro ao imprimir cupom de atendente:', error);
       alert(`Erro ao imprimir cupom de atendente: ${error.message}`);
@@ -560,7 +530,6 @@ export default function VendasInterface({ user }) {
   };
 
   const handleSelectAttendant = (atendente) => {
-    console.log('Selecionando atendente:', atendente);
     setSelectedAtendentes([...selectedAtendentes, atendente])
     
     // Update cart items with commission to include the selected attendant
@@ -571,7 +540,6 @@ export default function VendasInterface({ user }) {
           // Se já tem atendentes, adicionar o novo. Se não tem, criar array com o novo
           const currentAtendentes = item.atendentes || [];
           if (!currentAtendentes.includes(atendente.id)) {
-            console.log(`Atribuindo atendente ${atendente.id} ao produto ${produto.Descricao}`);
             return { ...item, atendentes: [...currentAtendentes, atendente.id] }
           }
         }
@@ -582,7 +550,6 @@ export default function VendasInterface({ user }) {
   }
 
   const handleRemoveAttendant = (atendenteId) => {
-    console.log('Removendo atendente:', atendenteId);
     setSelectedAtendentes(selectedAtendentes.filter(a => a.id !== atendenteId))
     
     // Remove attendant from cart items
@@ -591,7 +558,6 @@ export default function VendasInterface({ user }) {
         const produto = produtos.find(p => p.Id === item.produtoId)
         if (produto?.Comissao > 0 && item.atendentes) {
           const updatedAtendentes = item.atendentes.filter(id => id !== atendenteId);
-          console.log(`Removendo atendente ${atendenteId} do produto ${produto.Descricao}`);
           return { ...item, atendentes: updatedAtendentes }
         }
         return item

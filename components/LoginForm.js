@@ -20,7 +20,6 @@ export default function LoginForm({ onLogin, onLogout }) {
       const cleanUsername = username.trim()
       
       const response = await login(cleanUsername, password)
-      console.log(response)
 
       if (response.sessaoAtiva) {
         setSessaoAtiva(response.sessaoAtiva)
