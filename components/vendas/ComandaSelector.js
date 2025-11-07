@@ -8,12 +8,55 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
   const [isSelectOpen, setIsSelectOpen] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
-  // Filter comandas based on search term
-  const filteredComandas = comandas.filter(comanda =>
-    comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-    String(comanda.Idcomanda).includes(comandaSearchTerm) ||
-    String(comanda.Numero).includes(comandaSearchTerm)
-  )
+  // Filter and sort comandas based on search term
+  const filteredComandas = comandas
+    .filter(comanda =>
+      comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
+      String(comanda.Idcomanda).includes(comandaSearchTerm) ||
+      String(comanda.Numero).includes(comandaSearchTerm)
+    )
+    .sort((a, b) => {
+      const searchLower = comandaSearchTerm.toLowerCase()
+      const searchStr = comandaSearchTerm
+
+      // Check for exact matches
+      const aExactNumero = String(a.Numero) === searchStr
+      const bExactNumero = String(b.Numero) === searchStr
+      const aExactId = String(a.Idcomanda) === searchStr
+      const bExactId = String(b.Idcomanda) === searchStr
+      const aExactCliente = a.Cliente.toLowerCase() === searchLower
+      const bExactCliente = b.Cliente.toLowerCase() === searchLower
+
+      // Exact matches come first
+      if (aExactNumero && !bExactNumero) return -1
+      if (!aExactNumero && bExactNumero) return 1
+      if (aExactId && !bExactId) return -1
+      if (!aExactId && bExactId) return 1
+      if (aExactCliente && !bExactCliente) return -1
+      if (!aExactCliente && bExactCliente) return 1
+
+      // Then starts with
+      const aStartsNumero = String(a.Numero).startsWith(searchStr)
+      const bStartsNumero = String(b.Numero).startsWith(searchStr)
+      const aStartsCliente = a.Cliente.toLowerCase().startsWith(searchLower)
+      const bStartsCliente = b.Cliente.toLowerCase().startsWith(searchLower)
+
+      if (aStartsNumero && !bStartsNumero) return -1
+      if (!aStartsNumero && bStartsNumero) return 1
+      if (aStartsCliente && !bStartsCliente) return -1
+      if (!aStartsCliente && bStartsCliente) return 1
+
+      return 0
+    })
+
+  // Check if there's an exact match
+  const hasExactMatch = (comanda) => {
+    const searchLower = comandaSearchTerm.toLowerCase()
+    const searchStr = comandaSearchTerm
+    return String(comanda.Numero) === searchStr ||
+           String(comanda.Idcomanda) === searchStr ||
+           comanda.Cliente.toLowerCase() === searchLower
+  }
 
   const handleCreateComanda = async (newComanda) => {
     onComandaSelect(newComanda)
@@ -82,14 +125,23 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  // Auto-select first matching comanda when pressing Enter
+                  // Auto-select matching comanda when pressing Enter
                   if (comandaSearchTerm.trim()) {
-                    const matchingComanda = comandas.find(comanda => 
-                      comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                      String(comanda.Idcomanda).includes(comandaSearchTerm) ||
-                      String(comanda.Numero).includes(comandaSearchTerm)
+                    const searchLower = comandaSearchTerm.toLowerCase()
+                    const searchStr = comandaSearchTerm
+
+                    // First try to find exact match
+                    let matchingComanda = comandas.find(comanda =>
+                      String(comanda.Numero) === searchStr ||
+                      String(comanda.Idcomanda) === searchStr ||
+                      comanda.Cliente.toLowerCase() === searchLower
                     )
-                    
+
+                    // If no exact match, get first from filtered results
+                    if (!matchingComanda && filteredComandas.length > 0) {
+                      matchingComanda = filteredComandas[0]
+                    }
+
                     if (matchingComanda) {
                       onComandaSelect(matchingComanda)
                       setComandaSearchTerm('')
@@ -100,35 +152,33 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
             />
             {/* Show filtered results as clickable options */}
             {comandaSearchTerm.trim() && (
-              <div className="max-h-40 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg mb-3">
-                {filteredComandas
-                  .filter(comanda => 
-                    comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                    String(comanda.Idcomanda).includes(comandaSearchTerm) ||
-                    String(comanda.Numero).includes(comandaSearchTerm)
-                  )
-                  .map(comanda => (
+              <div className="max-h-60 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg mb-3">
+                {filteredComandas.map(comanda => {
+                  const isExact = hasExactMatch(comanda)
+                  return (
                     <div
                       key={comanda.Idcomanda}
-                      className="px-4 py-2 hover:bg-gray-700 cursor-pointer text-gray-100 border-b border-gray-600 last:border-b-0"
+                      className={`px-5 py-4 hover:bg-gray-700 cursor-pointer border-b border-gray-600 last:border-b-0 text-base ${
+                        isExact
+                          ? 'bg-blue-900 text-blue-100 font-semibold border-l-4 border-l-blue-500'
+                          : 'text-gray-100'
+                      }`}
                       onClick={() => {
                         onComandaSelect(comanda)
                         setComandaSearchTerm('')
                       }}
                     >
+                      {isExact && <span className="text-blue-400 mr-2 text-lg">✓</span>}
                       {comanda.Cliente} - {comanda.Numero} (ID: {comanda.Idcomanda})
                     </div>
-                  ))}
-                {filteredComandas.filter(comanda =>
-                  comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                  String(comanda.Idcomanda).includes(comandaSearchTerm) ||
-                  String(comanda.Numero).includes(comandaSearchTerm)
-                ).length === 0 && (
-                  <div className="px-4 py-2">
-                    <div className="text-gray-400 mb-2">Nenhuma comanda encontrada</div>
+                  )
+                })}
+                {filteredComandas.length === 0 && (
+                  <div className="px-5 py-4">
+                    <div className="text-gray-400 mb-3 text-base">Nenhuma comanda encontrada</div>
                     <button
                       onClick={() => setIsCreateModalOpen(true)}
-                      className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                      className="w-full bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition-colors text-base font-medium"
                     >
                       Criar Nova Comanda
                     </button>
@@ -157,14 +207,23 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    // Auto-select first matching comanda when pressing Enter
+                    // Auto-select matching comanda when pressing Enter
                     if (comandaSearchTerm.trim()) {
-                      const matchingComanda = comandas.find(comanda => 
-                        comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                        String(comanda.Idcomanda).includes(comandaSearchTerm) ||
-                        String(comanda.Numero).includes(comandaSearchTerm)
+                      const searchLower = comandaSearchTerm.toLowerCase()
+                      const searchStr = comandaSearchTerm
+
+                      // First try to find exact match
+                      let matchingComanda = comandas.find(comanda =>
+                        String(comanda.Numero) === searchStr ||
+                        String(comanda.Idcomanda) === searchStr ||
+                        comanda.Cliente.toLowerCase() === searchLower
                       )
-                      
+
+                      // If no exact match, get first from filtered results
+                      if (!matchingComanda && filteredComandas.length > 0) {
+                        matchingComanda = filteredComandas[0]
+                      }
+
                       if (matchingComanda) {
                         onComandaSelect(matchingComanda)
                         setComandaSearchTerm('')
@@ -176,39 +235,37 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
               />
               {/* Show filtered results as clickable options */}
               {comandaSearchTerm.trim() && (
-                <div className="max-h-40 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg mb-3">
-                  {filteredComandas
-                    .filter(comanda => 
-                      comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                      String(comanda.Idcomanda).includes(comandaSearchTerm) ||
-                      String(comanda.Numero).includes(comandaSearchTerm)
-                    )
-                    .map(comanda => (
+                <div className="max-h-60 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg mb-3">
+                  {filteredComandas.map(comanda => {
+                    const isExact = hasExactMatch(comanda)
+                    return (
                       <div
                         key={comanda.Idcomanda}
-                        className="px-4 py-2 hover:bg-gray-700 cursor-pointer text-gray-100 border-b border-gray-600 last:border-b-0"
+                        className={`px-5 py-4 hover:bg-gray-700 cursor-pointer border-b border-gray-600 last:border-b-0 text-base ${
+                          isExact
+                            ? 'bg-blue-900 text-blue-100 font-semibold border-l-4 border-l-blue-500'
+                            : 'text-gray-100'
+                        }`}
                         onClick={() => {
                           onComandaSelect(comanda)
                           setComandaSearchTerm('')
                           setIsSelectOpen(false)
                         }}
                       >
-                        {comanda.Cliente} (ID: {comanda.Idcomanda})
+                        {isExact && <span className="text-blue-400 mr-2 text-lg">✓</span>}
+                        {comanda.Cliente} - {comanda.Numero} (ID: {comanda.Idcomanda})
                       </div>
-                    ))}
-                  {filteredComandas.filter(comanda =>
-                    comanda.Cliente.toLowerCase().includes(comandaSearchTerm.toLowerCase()) ||
-                    String(comanda.Idcomanda).includes(comandaSearchTerm) ||
-                    String(comanda.Numero).includes(comandaSearchTerm)
-                  ).length === 0 && (
-                    <div className="px-4 py-2">
-                      <div className="text-gray-400 mb-2">Nenhuma comanda encontrada</div>
+                    )
+                  })}
+                  {filteredComandas.length === 0 && (
+                    <div className="px-5 py-4">
+                      <div className="text-gray-400 mb-3 text-base">Nenhuma comanda encontrada</div>
                       <button
                         onClick={() => {
                           setIsSelectOpen(false)
                           setIsCreateModalOpen(true)
                         }}
-                        className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        className="w-full bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition-colors text-base font-medium"
                       >
                         Criar Nova Comanda
                       </button>
