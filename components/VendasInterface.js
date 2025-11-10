@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getComandas, getProdutos, getAtendentes, registerSale, closeComanda } from '../lib/api'
 import ComandaDetalhes from './ComandaDetalhes'
 import ProductGrid from './vendas/ProductGrid'
@@ -91,6 +91,10 @@ export default function VendasInterface({ user }) {
   // Novos estados para cupom de atendente
   const [attendantModalQueue, setAttendantModalQueue] = useState([])
   const [currentAttendantModal, setCurrentAttendantModal] = useState(null)
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false)
+  const [lastSale, setLastSale] = useState(null)
+
+  const productGridRef = useRef(null)
 
   const bluetoothService = BluetoothService.getInstance();
   const { config, loading: configLoading } = useConfig();
@@ -105,7 +109,7 @@ export default function VendasInterface({ user }) {
       setComandas(updatedComandas);
 
       // Limpa a comanda selecionada
-      setSelectedComanda(null);
+      handleComandaSelect(null);
     } catch (err) {
       const errorMessage = err.response?.data?.error || err.message || 'Erro desconhecido ao fechar a comanda';
       setError(errorMessage);
@@ -196,6 +200,14 @@ export default function VendasInterface({ user }) {
     }
   }, [attendantModalQueue, currentAttendantModal]);
 
+  const handleComandaSelect = (comanda) => {
+    setSelectedComanda(comanda)
+    // Se comanda for null (limpar), limpar campo de busca de produtos
+    if (comanda === null) {
+      productGridRef.current?.clearSearch()
+    }
+  }
+
   const addToCart = (produto) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.produtoId === produto.Id)
@@ -206,8 +218,8 @@ export default function VendasInterface({ user }) {
             : item
         )
       }
-      return [...prevCart, { 
-        produtoId: produto.Id, 
+      return [...prevCart, {
+        produtoId: produto.Id,
         quantidade: 1
       }]
     })
@@ -442,6 +454,8 @@ export default function VendasInterface({ user }) {
         printSuccess = true;
         setSaleStatus('success');
         setErrorMessage('');
+        setShowSuccessBanner(true);
+        setTimeout(() => setShowSuccessBanner(false), 4000);
       } catch (printErr) {
         console.error('Erro ao imprimir:', printErr);
         printError = printErr.message || 'Erro desconhecido na impressão';
@@ -463,6 +477,8 @@ export default function VendasInterface({ user }) {
         printSuccess = true;
         setSaleStatus('success');
         setErrorMessage('');
+        setShowSuccessBanner(true);
+        setTimeout(() => setShowSuccessBanner(false), 4000);
       }
 
       // Preparar cupons de atendente se houver produtos com comissão E comissão estiver habilitada
@@ -491,6 +507,26 @@ export default function VendasInterface({ user }) {
       setCart([])
       setSelectedAtendentes([])
       setLastSaleCupom(response.cupomId)
+
+      // Limpar campo de busca de produtos
+      productGridRef.current?.clearSearch()
+
+      // Limpar comanda selecionada (refresh completo)
+      handleComandaSelect(null)
+
+      // Salvar dados da última venda
+      setLastSale({
+        comanda: selectedComanda,
+        items: cart.map(item => {
+          const produto = produtos.find(p => p.Id === item.produtoId)
+          return {
+            ...item,
+            produto
+          }
+        }),
+        timestamp: new Date(),
+        cupomId: response.cupomId
+      })
 
       // Se a impressão falhou, oferece opções ao usuário
       if (!printSuccess && imprimirHabilitado) {
@@ -603,6 +639,13 @@ export default function VendasInterface({ user }) {
 
   return (
     <div className="container mx-auto px-4 py-8 bg-gray-900 min-h-screen">
+      {/* Banner de sucesso */}
+      {showSuccessBanner && (
+        <div className="mb-4 p-4 rounded-lg bg-green-900 border border-green-700 text-green-100 animate-pulse">
+          <p className="text-center text-xl font-bold">✓ VENDA REALIZADA COM ÊXITO</p>
+        </div>
+      )}
+
       {/* Mensagens de status */}
       {errorMessage && (
         <div className={`mb-4 p-4 rounded-lg ${
@@ -620,7 +663,7 @@ export default function VendasInterface({ user }) {
             <ComandaSelector
               comandas={comandas}
               selectedComanda={selectedComanda}
-              onComandaSelect={setSelectedComanda}
+              onComandaSelect={handleComandaSelect}
               onShowDetails={setShowComandaDetalhes}
               onCloseComanda={handleCloseComanda}
               onComandaCreated={handleComandaCreated}
@@ -650,6 +693,7 @@ export default function VendasInterface({ user }) {
         {/* Grid de Produtos - Lado Esquerdo */}
         <div className="lg:col-span-7">
           <ProductGrid
+            ref={productGridRef}
             produtos={produtos}
             onAddToCart={addToCart}
           />
@@ -662,7 +706,7 @@ export default function VendasInterface({ user }) {
             <ComandaSelector
               comandas={comandas}
               selectedComanda={selectedComanda}
-              onComandaSelect={setSelectedComanda}
+              onComandaSelect={handleComandaSelect}
               onShowDetails={setShowComandaDetalhes}
               onCloseComanda={handleCloseComanda}
               onComandaCreated={handleComandaCreated}
@@ -693,6 +737,43 @@ export default function VendasInterface({ user }) {
               selectedComanda={selectedComanda}
             />
           </div>
+
+          {/* Última Venda Realizada */}
+          {lastSale && (
+            <div className="bg-gray-800 p-4 rounded-lg border border-green-700 shadow-lg hidden lg:block">
+              <h3 className="text-lg font-bold text-green-400 mb-3">✓ Última Venda</h3>
+              <div className="space-y-2">
+                <div className="border-b border-gray-700 pb-2">
+                  <p className="text-sm text-gray-400">Comanda</p>
+                  <p className="text-gray-100 font-medium">
+                    {lastSale.comanda.Numero} - {lastSale.comanda.Cliente}
+                  </p>
+                </div>
+                <div className="border-b border-gray-700 pb-2">
+                  <p className="text-sm text-gray-400 mb-1">Produtos</p>
+                  <div className="space-y-1">
+                    {lastSale.items.map((item, idx) => (
+                      <div key={idx} className="flex justify-between text-sm text-gray-200">
+                        <span>{item.quantidade}x {item.produto?.Descricao}</span>
+                        <span>R$ {(item.produto?.Preco * item.quantidade).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-between items-center pt-1">
+                  <span className="text-sm text-gray-400">Total</span>
+                  <span className="text-lg font-bold text-green-400">
+                    R$ {lastSale.items.reduce((sum, item) =>
+                      sum + (item.produto?.Preco * item.quantidade || 0), 0
+                    ).toFixed(2)}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 text-center pt-1">
+                  {lastSale.timestamp.toLocaleTimeString('pt-BR')} - Cupom #{lastSale.cupomId}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Status da impressora */}
           {config && config.imprimir !== 0 && (
@@ -726,7 +807,7 @@ export default function VendasInterface({ user }) {
           )}
         
           <button
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden lg:block"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden lg:block text-xl"
             disabled={cart.length === 0 || isProcessingSale}
             onClick={handleSale}
           >
@@ -769,7 +850,7 @@ export default function VendasInterface({ user }) {
 
       <div className="fixed bottom-0 z-10 left-0 right-0 bg-gray-800 p-4 pb-10 shadow-lg lg:hidden border-t border-gray-700">
         <button
-          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xl"
           disabled={cart.length === 0 || isProcessingSale}
           onClick={handleSale}
         >

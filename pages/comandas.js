@@ -88,16 +88,16 @@ export default function Comandas() {
       <div className="flex justify-between items-center mb-6">
         <button
           onClick={() => router.push('/vendas')}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-lg"
         >
-          Vendas
+          Voltar
         </button>
-        <h1 className="text-2xl font-bold text-gray-100">
+        <h1 className="text-3xl font-bold text-gray-100">
           {config && config["nome sala"] ? config["nome sala"] : "TecBar"} - Comandas
         </h1>
         <button
           onClick={() => setShowComandaForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-lg"
         >
           Criar
         </button>

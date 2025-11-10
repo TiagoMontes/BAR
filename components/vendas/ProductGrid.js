@@ -1,11 +1,18 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useImperativeHandle, forwardRef } from 'react'
 
-export default function ProductGrid({ produtos, onAddToCart }) {
+function ProductGrid({ produtos, onAddToCart }, ref) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSetor, setSelectedSetor] = useState('todos')
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(false)
   const itemsPerPage = isMobile ? 6 : 6
+
+  // Expor função para limpar busca
+  useImperativeHandle(ref, () => ({
+    clearSearch: () => {
+      setSearchTerm('')
+    }
+  }))
 
   // Detect mobile screen
   useEffect(() => {
@@ -55,7 +62,7 @@ export default function ProductGrid({ produtos, onAddToCart }) {
           <input
             type="text"
             placeholder="Buscar produtos..."
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
+            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400 text-lg"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -90,7 +97,10 @@ export default function ProductGrid({ produtos, onAddToCart }) {
             <div
               key={produto.Id}
               className="bg-gray-800 p-4 rounded-lg border border-gray-700 hover:border-gray-500 transition-colors cursor-pointer flex flex-col justify-between hover:bg-gray-750"
-              onClick={() => onAddToCart(produto)}
+              onClick={() => {
+                onAddToCart(produto)
+                setSearchTerm('')
+              }}
             >
               <h3 className="font-semibold text-sm flex-wrap text-gray-100">{produto.Descricao}</h3>
               <p className="text-gray-300 text-sm">R$ {Number(produto.Preco.toFixed(2))}</p>
@@ -125,4 +135,6 @@ export default function ProductGrid({ produtos, onAddToCart }) {
       )}
     </div>
   )
-} 
+}
+
+export default forwardRef(ProductGrid) 
