@@ -474,8 +474,9 @@ app.post('/api/vendas', async (req, res) => {
     const configObj = Array.isArray(config) ? config[0] : config;
     const cupomInicial = configObj["cupom inicial"] || 5001;
 
-    // Obter todos os arquivos de cupom existentes
-    const files = await fs.readdir(salesDir);
+    // Obter todos os arquivos de cupom existentes do historico (não de Vendas)
+    // para garantir que não haja duplicação de cupomId mesmo após apagar vendas
+    const files = await fs.readdir(salesHistoryDir);
     const cupomFiles = files.filter(file => file.endsWith('.cv'));
     
     // Gerar cupomId baseado na configuração
