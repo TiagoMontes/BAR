@@ -117,7 +117,7 @@ export default function ComandaSelector({ comandas, selectedComanda, onComandaSe
             <input
               type="text"
               placeholder="Buscar comanda por nome, ID ou número..."
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-[32px] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 placeholder-gray-400"
               value={comandaSearchTerm}
               onChange={(e) => {
                 const searchValue = e.target.value
