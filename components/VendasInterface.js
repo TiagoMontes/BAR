@@ -420,6 +420,11 @@ export default function VendasInterface({ user }) {
         return
       }
 
+      // Salvar dados da venda atual antes de tentar registrar (para manter em caso de erro)
+      const currentCart = [...cart];
+      const currentAtendentes = [...selectedAtendentes];
+      const currentComanda = selectedComanda;
+
       // Registra a venda primeiro
       const response = await registerSale({
         comandaId: selectedComanda.Idcomanda,
@@ -428,21 +433,21 @@ export default function VendasInterface({ user }) {
         items: cart,
         atendentes: selectedAtendentes.map(a => a.id)
       })
-      
+
       // Update comandas data
       const updatedComandas = await getComandas()
       setComandas(updatedComandas)
-      
+
       // Format receipt
       const receipt = formatReceipt(
-        { items: cart },
-        selectedComanda,
+        { items: currentCart },
+        currentComanda,
         response.cupomId
       );
-      
+
       // Verificar se a impressão está habilitada na configuração
       const imprimirHabilitado = config && config.imprimir === 1;
-      
+
       // Tenta imprimir o cupom principal apenas se habilitado
       let printSuccess = false;
       let printError = '';
@@ -460,7 +465,7 @@ export default function VendasInterface({ user }) {
         console.error('Erro ao imprimir:', printErr);
         printError = printErr.message || 'Erro desconhecido na impressão';
         setSaleStatus('warning');
-        
+
         // Mensagens de erro mais específicas
         if (printError.includes('not initialized') || printError.includes('not connected')) {
           setErrorMessage(`Venda realizada com sucesso! Porém, a impressora não está conectada. Clique em "Configurar Impressora" para conectar.`);
@@ -483,7 +488,7 @@ export default function VendasInterface({ user }) {
 
       // Preparar cupons de atendente se houver produtos com comissão E comissão estiver habilitada
       const comissaoHabilitada = config && config.comissao === 1;
-      if (selectedAtendentes.length > 0 && comissaoHabilitada) {
+      if (currentAtendentes.length > 0 && comissaoHabilitada) {
         const attendantCommissions = calculateAttendantCommissions();
         if (attendantCommissions.length > 0) {
           const modalsQueue = attendantCommissions.map(commission => {
@@ -492,7 +497,7 @@ export default function VendasInterface({ user }) {
               console.error('Attendant não encontrado na comissão:', commission);
               return null;
             }
-            
+
             return {
             attendant: commission.attendant,
             commissionValue: commission.totalCommission,
@@ -502,7 +507,8 @@ export default function VendasInterface({ user }) {
           setAttendantModalQueue(modalsQueue);
         }
       }
-      
+
+      // ✅ APENAS LIMPA APÓS CONFIRMAR QUE A VENDA FOI REGISTRADA COM SUCESSO
       // Clear cart and selected attendants
       setCart([])
       setSelectedAtendentes([])
@@ -516,8 +522,8 @@ export default function VendasInterface({ user }) {
 
       // Salvar dados da última venda
       setLastSale({
-        comanda: selectedComanda,
-        items: cart.map(item => {
+        comanda: currentComanda,
+        items: currentCart.map(item => {
           const produto = produtos.find(p => p.Id === item.produtoId)
           return {
             ...item,
@@ -535,7 +541,7 @@ export default function VendasInterface({ user }) {
             'Venda realizada com sucesso, mas houve erro na impressão.\n\n' +
             'Deseja tentar imprimir novamente?'
           );
-          
+
           if (shouldRetry) {
             handleRetryPrint(receipt);
           }
@@ -546,6 +552,7 @@ export default function VendasInterface({ user }) {
       console.error('Erro ao registrar venda:', err);
       setErrorMessage('Erro ao registrar venda: ' + (err.message || 'Erro desconhecido'))
       setSaleStatus('error')
+      // ✅ NÃO LIMPA OS DADOS - Mantém cart, atendentes e comanda para o usuário tentar novamente
     } finally {
       setIsProcessingSale(false)
     }
